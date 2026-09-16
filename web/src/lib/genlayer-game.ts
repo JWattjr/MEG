@@ -107,7 +107,7 @@ const botAddresses = (process.env.NEXT_PUBLIC_GENLAYER_BOT_ADDRESSES ?? "")
   .filter((value, index, values) => isAddress(value) && values.indexOf(value) === index);
 const formBotAddress = process.env.NEXT_PUBLIC_GENLAYER_FORM_BOT_ADDRESS?.trim().toLowerCase() ?? "";
 const chaosBotAddress = process.env.NEXT_PUBLIC_GENLAYER_CHAOS_BOT_ADDRESS?.trim().toLowerCase() ?? "";
-const endpoint = process.env.NEXT_PUBLIC_GENLAYER_GAME_RPC_URL?.trim() || undefined;
+const endpoint = process.env.NEXT_PUBLIC_GENLAYER_GAME_RPC_URL?.trim() || (networkSetting === "studionet" && typeof window !== "undefined" ? "/api/genlayer" : undefined);
 const networkLabel = networkSetting === "studionet" ? "StudioNet" : "Localnet test";
 
 export const genLayerGameConfig = {
