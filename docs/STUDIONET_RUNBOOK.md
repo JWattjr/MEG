@@ -18,6 +18,21 @@ This is an operator checklist for a fresh MEG deployment. It does not deploy or 
 4. Create the game round with `resolver_address`, the matching `resolver_resolution_id`, the same match ID, timestamps, minimum participants, minimum total stake, and minimum unique grids.
 5. Verify the round view, resolver view, stake quote, and source list from a second read-only wallet.
 
+## Current StudioNet deployment
+
+Recorded 2026-09-16 after finalized StudioNet transactions. These are public identifiers; no private key belongs in the repository or Vercel environment.
+
+- Game contract: `0xb9F52D9b438F2e201cd31142A7ad5301b4b4FE50` — deployment tx `0x69a7befaa55b373705073f38d48c5902f6329e3c63f2507eb9f3e614d92c9b91`
+- Resolver contract: `0xf3a10d31c9f2Bd8B3A9EABeaF0895bD6682bfd14` — deployment tx `0xbbd5ee5700352af607677eb54d62ce13eba9a2cebbcf4e2505a21def4ab601f5`
+- Registered match: Team Liquid vs Paper Rex, Valorant Champions 2026 Group Stage Opening (C), best-of-three; scheduled for `2026-09-24T09:00:00Z`; Map 1 veto pending.
+- Game round: `meg-champions-2026-group-c-tl-prx`
+- Resolver resolution: `meg-champions-2026-group-c-tl-prx-20260924`
+- Registration tx: `0x990da9f0b05f39b351393d2ba62545b197ef2d0f23eae76a8448bf00729a1b31`
+- Resolver state after registration: `PENDING`, attempt count `0`, dispatch count `0`.
+- Approved evidence sources: `https://valorantesports.com/en-US/leagues/challengers_na,champions,vct_americas,vct_emea,vct_pacific` and `https://www.vlr.gg/matches`.
+
+Do not call `resolve_round` before `2026-09-24T15:00:00Z`. Re-check the final match record and source agreement first; keep the resolver pending if the match is postponed, disputed, or only partially evidenced.
+
 ## Safe opening
 
 1. Set `NEXT_PUBLIC_GENLAYER_GAME_NETWORK=studionet` and fill only the public contract addresses and round IDs.

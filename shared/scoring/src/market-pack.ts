@@ -113,6 +113,25 @@ export const SYNTHETIC_VALORANT_FIXTURE: ValorantFixture = {
   sourceUrls: ["https://valorantesports.com/", "https://www.vlr.gg/"],
 };
 
+export const VERIFIED_VALORANT_FIXTURE: ValorantFixture = {
+  matchId: "valorant-champions-2026-group-c-opening-tl-prx",
+  seriesName: "Team Liquid vs Paper Rex",
+  teamA: "Team Liquid",
+  teamB: "Paper Rex",
+  teamAShort: "TL",
+  teamBShort: "PRX",
+  map1: "Map 1 - veto pending",
+  playerA: "nAts",
+  playerB: "something",
+  format: "BEST_OF_3",
+  scheduledAt: "2026-09-24T09:00:00Z",
+  mode: "VERIFIED",
+  sourceUrls: [
+    "https://valorantesports.com/en-US/leagues/challengers_na,champions,vct_americas,vct_emea,vct_pacific",
+    "https://www.vlr.gg/matches",
+  ],
+};
+
 const option = (cellIndex: number, optionIndex: number, label: string, shortLabel = label): MarketOption => ({
   id: MARKET_OPTION_IDS[cellIndex * OPTIONS_PER_CELL + optionIndex],
   label,
@@ -175,7 +194,7 @@ export function createValorantMarketPack(fixture: ValorantFixture = SYNTHETIC_VA
   };
 }
 
-export const VALORANT_MARKET_PACK = createValorantMarketPack();
+export const VALORANT_MARKET_PACK = createValorantMarketPack(VERIFIED_VALORANT_FIXTURE);
 
 export function optionIdForCell(cellIndex: number, optionIndex: number): MarketOptionId {
   if (!Number.isInteger(cellIndex) || cellIndex < 0 || cellIndex >= GRID_CELLS || !Number.isInteger(optionIndex) || optionIndex < 0 || optionIndex >= OPTIONS_PER_CELL) throw new Error("Market option is outside the MEG grid.");

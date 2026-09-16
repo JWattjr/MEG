@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { MARKET_OPTION_IDS, VALORANT_MARKET_PACK, assertFullGrid, cellIndexForOptionId, createValorantMarketPack, optionIdForCell, optionIndexForId, packGrid, unpackGrid } from "./market-pack";
+import { MARKET_OPTION_IDS, VALORANT_MARKET_PACK, VERIFIED_VALORANT_FIXTURE, assertFullGrid, cellIndexForOptionId, createValorantMarketPack, optionIdForCell, optionIndexForId, packGrid, unpackGrid } from "./market-pack";
 
 describe("MEG market pack", () => {
   it("defines nine cells across the three broadcast columns", () => {
     expect(VALORANT_MARKET_PACK.cells).toHaveLength(9);
     expect(VALORANT_MARKET_PACK.cells.map((entry) => entry.column)).toEqual(["TEAM", "MAP", "PLAYER", "TEAM", "MAP", "PLAYER", "TEAM", "MAP", "PLAYER"]);
     expect(VALORANT_MARKET_PACK.cells.every((entry) => entry.options.length === 3)).toBe(true);
+    expect(VALORANT_MARKET_PACK.fixture).toEqual(VERIFIED_VALORANT_FIXTURE);
   });
 
   it("keeps labels fixture-configurable without changing cell identity", () => {

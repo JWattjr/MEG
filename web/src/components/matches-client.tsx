@@ -3,7 +3,7 @@
 import { ArrowRight, CalendarClock, CircleDot, ShieldCheck, Users } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { SYNTHETIC_VALORANT_FIXTURE } from "@meg/scoring";
+import { VERIFIED_VALORANT_FIXTURE } from "@meg/scoring";
 import { disclosedBotLabel, formatGen, genLayerGameConfig, readGameRounds, readRoundEntries, type GameRoundRecord } from "@/lib/genlayer-game";
 
 export function MatchesClient() {
@@ -13,11 +13,11 @@ export function MatchesClient() {
 
   return <div className="round-list">
     <article className="round-card featured-round">
-      <header><span className="status-tag pending">SYNTHETIC · LOCAL ONLY</span><span className="section-code">VALORANT / BO3</span></header>
-      <h2>{SYNTHETIC_VALORANT_FIXTURE.seriesName}</h2>
-      <p>This fixture keeps local review concrete. It is not a live schedule, does not carry a contract address, and cannot accept a wallet entry.</p>
-      <div className="data-grid"><div><span>Map 1</span><strong>{SYNTHETIC_VALORANT_FIXTURE.map1}</strong></div><div><span>Players</span><strong>{SYNTHETIC_VALORANT_FIXTURE.playerA} / {SYNTHETIC_VALORANT_FIXTURE.playerB}</strong></div><div><span>State</span><strong>Preview only</strong></div></div>
-      <Link className="text-link" href="/">Open synthetic board <ArrowRight size={15} /></Link>
+      <header><span className="status-tag pending">VERIFIED · UPCOMING</span><span className="section-code">VALORANT / BO3</span></header>
+      <h2>{VERIFIED_VALORANT_FIXTURE.seriesName}</h2>
+      <p>Verified upcoming Valorant Champions fixture. Map 1 remains pending veto; entries unlock through the registered StudioNet round.</p>
+      <div className="data-grid"><div><span>Map 1</span><strong>{VERIFIED_VALORANT_FIXTURE.map1}</strong></div><div><span>Starts</span><strong>{formatDate(VERIFIED_VALORANT_FIXTURE.scheduledAt)}</strong></div><div><span>State</span><strong>Awaiting lock</strong></div></div>
+      <Link className="text-link" href="/">Open verified board <ArrowRight size={15} /></Link>
     </article>
     {error && <div className="notice-strip" role="alert"><CircleDot size={15} />{error}</div>}
     {genLayerGameConfig.enabled && rounds.length > 0 && rounds.map((round) => <OnchainRoundCard key={round.round_id} round={round} />)}
