@@ -1,0 +1,26 @@
+# Secrets
+.env
+.env.local
+**/.env
+**/.env.local
+!.env.example
+!**/.env.example
+
+# Dependencies and generated output
+**/node_modules/
+web/.next/
+web/.vercel/
+.vercel/
+**/__pycache__/
+*.py[cod]
+**/*.tsbuildinfo
+.pytest_cache/
+.tools/
+web/test-results/
+web/playwright-report/
+
+# Logs and editor noise
+*.log
+.DS_Store
+Thumbs.db
+shared/scoring/dist

@@ -1,0 +1,20 @@
+{
+  "name": "meg",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "pnpm --filter @meg/scoring build && pnpm -r --filter=!@meg/scoring build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "dev:web": "pnpm --filter web dev",
+    "typecheck": "pnpm -r typecheck",
+    "test:contracts": "python -m pytest tests/direct -v"
+  },
+  "devDependencies": {
+    "next": "16.2.12"
+  }
+}
