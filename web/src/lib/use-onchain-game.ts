@@ -11,12 +11,10 @@ import {
   genLayerGameConfig,
   parseStake,
   processGameSettlement,
-  readCellPools,
   readGameEntry,
   readGameRound,
   readGameRoundResolution,
   resolveGameRound,
-  type GameCellPool,
   type GameEntryRecord,
   type GameRoundRecord,
   type GameRoundResolutionRecord,
@@ -33,7 +31,6 @@ export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
   const [round, setRound] = useState<GameRoundRecord | null>(null);
   const [entry, setEntry] = useState<GameEntryRecord | null>(null);
   const [resolution, setResolution] = useState<GameRoundResolutionRecord | null>(null);
-  const [pools, setPools] = useState<GameCellPool[]>([]);
   const [action, setAction] = useState<OnchainGameAction>("IDLE");
   const [transactionStage, setTransactionStage] = useState<TransactionStage>("IDLE");
   const [error, setError] = useState("");
@@ -47,15 +44,13 @@ export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
 
   const refresh = useCallback(async () => {
     if (!genLayerGameConfig.enabled || !selectedRoundId) return;
-    const [nextRound, nextEntry, nextPools, nextResolution] = await Promise.all([
+    const [nextRound, nextEntry, nextResolution] = await Promise.all([
       readGameRound(selectedRoundId),
       address ? readGameEntry(address, selectedRoundId) : Promise.resolve(null),
-      readCellPools(selectedRoundId),
       readGameRoundResolution(selectedRoundId),
     ]);
     setRound(nextRound);
     setEntry(nextEntry);
-    setPools(nextPools);
     setResolution(nextResolution);
   }, [address, selectedRoundId]);
 
@@ -69,9 +64,9 @@ export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
       }
     };
     void load();
-    // One refresh reads the round, resolver, wallet entry, and all nine cell
-    // pools. A one-minute cadence keeps the complete audit view courteous to
-    // public RPC limits on Studio Next.
+    // One refresh reads only the state used by the current UI. A one-minute
+    // cadence keeps the complete entry view courteous to public RPC limits on
+    // Studio Next.
     const timer = window.setInterval(() => void load(), 60_000);
     return () => { active = false; window.clearInterval(timer); };
   }, [refresh]);
@@ -167,7 +162,6 @@ export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
     round,
     entry,
     resolution,
-    pools,
     action,
     transactionStage,
     error,
