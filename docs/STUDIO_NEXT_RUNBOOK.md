@@ -41,6 +41,6 @@ The following fields are filled only after a fresh transaction is finalized on S
 
 - Repository: `https://github.com/JWattjr/MEG`
 - Branch: `codex/studio-next-launch`
-- Public app URL: fill after the Preview deployment completes
+- Public app URL: https://moment-grid-genlayer-9mc6wwr60-wattxs-projects.vercel.app
 - Public contract addresses and transaction hashes: recorded above; each transaction finalized with accepted consensus
 - Demo video: record the script in `docs/DEMO_VIDEO_SCRIPT.md`; do not claim a video URL until it is uploaded.

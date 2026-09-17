@@ -4,6 +4,7 @@
 
 - Repository: https://github.com/JWattjr/MEG
 - Branch: `codex/studio-next-launch`
+- Public Preview: https://moment-grid-genlayer-9mc6wwr60-wattxs-projects.vercel.app
 - Network: Studio Next / GenLayer Studio Devnet
 - Chain ID: `61997`
 - RPC: `https://studio-next.genlayer.com/api`
