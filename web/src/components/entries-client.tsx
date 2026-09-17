@@ -9,8 +9,8 @@ import { useOnchainGame } from "@/lib/use-onchain-game";
 export function EntriesClient() {
   const { address } = useAccount();
   const game = useOnchainGame();
-  if (!address) return <div className="empty-state"><WalletCards size={20} /><strong>Connect a wallet to inspect your entry.</strong><span>MEG never asks for a private key. Your wallet address is only used to read its registered StudioNet position.</span></div>;
-  if (!genLayerGameConfig.activeRoundEnabled) return <div className="empty-state"><ShieldCheck size={20} /><strong>No MEG round is connected.</strong><span>This build has no fresh StudioNet game address and round id configured yet.</span><Link className="text-link" href="/matches">Review match setup <ArrowRight size={15} /></Link></div>;
+  if (!address) return <div className="empty-state"><WalletCards size={20} /><strong>Connect a wallet to inspect your entry.</strong><span>MEG never asks for a private key. Your wallet address is only used to read its registered Studio Next position.</span></div>;
+  if (!genLayerGameConfig.activeRoundEnabled) return <div className="empty-state"><ShieldCheck size={15} /><strong>No MEG round is connected.</strong><span>This build has no fresh Studio Next game address and round id configured yet.</span><Link className="text-link" href="/matches">Review match setup <ArrowRight size={15} /></Link></div>;
   if (game.error) return <div className="notice-strip" role="alert"><TriangleAlert size={15} />{game.error}</div>;
   if (!game.entry) return <div className="empty-state"><LockKeyhole size={20} /><strong>No entry for this round.</strong><span>Build a nine-call grid, review the GEN allocation, and sign only when the wallet request matches your intent.</span><Link className="text-link" href="/">Build a grid <ArrowRight size={15} /></Link></div>;
   const status = game.round?.status ?? "OPEN";

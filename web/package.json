@@ -11,12 +11,14 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@meg/scoring": "workspace:*",
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource/archivo-black": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@genlayer/transaction-kit": "0.1.0-rc.2",
+    "@genlayer/transaction-kit-react": "0.1.0-rc.2",
+    "@meg/scoring": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
-    "genlayer-js": "^1.1.8",
+    "genlayer-js": "2.0.0-rc.1",
     "lucide-react": "^1.28.0",
     "next": "16.2.12",
     "react": "19.2.4",

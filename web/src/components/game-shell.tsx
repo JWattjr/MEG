@@ -102,7 +102,7 @@ export function GameShell({ roundId }: { roundId?: string }) {
     setNotice("");
     if (!complete || !allocation || locked) return;
     if (!game.configured) {
-      setNotice("This is a local preview. Add a fresh MEG StudioNet game and resolver address to enable the wallet transaction.");
+      setNotice("This is a local preview. Add the fresh Studio Next MEG game and resolver addresses to enable the wallet transaction.");
       return;
     }
     updateGuide("sign");
@@ -243,7 +243,7 @@ function EntryAction({ game, allocation, complete, stage, locked, guideStep, not
       <p>{stage === "BUILD" ? "Fill all nine cells first. Your next step is a plain-English review of the stake and proof policy." : "Acceptance fixes the grid. The wallet request opens only after you choose to continue."}</p>
       {stage === "BUILD" ? <button className={`primary-control ${guideStep === "review" ? "is-guide-target" : ""}`} type="button" onClick={onReview} disabled={!complete} data-guide="review-grid">Review my nine calls <ArrowRight size={16} /></button> : <>
         <div className="immutable-note"><FileCheck2 size={15} /><span><strong>After acceptance, this grid cannot change.</strong><small>One transaction stores all nine options and the full stake on the MEG game contract.</small></span></div>
-        <div className="action-row"><button className="secondary-control" type="button" onClick={onBack}><ArrowLeft size={15} /> Edit calls</button><button className={`primary-control ${guideStep === "sign" ? "is-guide-target" : ""}`} type="button" onClick={() => void onLock()} disabled={disabled} data-guide="sign-entry">{game.configured ? `Lock & sign ${allocation ? formatGen(allocation.stake) : "0"} GEN` : "StudioNet lock unavailable"}<LockKeyhole size={15} /></button></div>
+        <div className="action-row"><button className="secondary-control" type="button" onClick={onBack}><ArrowLeft size={15} /> Edit calls</button><button className={`primary-control ${guideStep === "sign" ? "is-guide-target" : ""}`} type="button" onClick={() => void onLock()} disabled={disabled} data-guide="sign-entry">{game.configured ? `Lock & sign ${allocation ? formatGen(allocation.stake) : "0"} GEN` : "Studio Next lock unavailable"}<LockKeyhole size={15} /></button></div>
       </>}
       {notice && <p className="inline-notice" role="status"><TriangleAlert size={15} />{notice}</p>}
       {error && <p className="inline-error" role="alert"><TriangleAlert size={15} />{error} <span>Check your wallet network and retry; no entry is confirmed until the contract state updates.</span></p>}
@@ -254,7 +254,7 @@ function EntryAction({ game, allocation, complete, stage, locked, guideStep, not
 
 function TransactionState({ game }: { game: OnchainGame }) {
   const label = game.transactionStage === "SUBMITTED" ? "Transaction submitted" : game.transactionStage === "CONSENSUS" ? "Waiting for validator acceptance" : game.transactionStage === "ACCEPTED" ? "Transaction accepted · waiting for finality" : game.transactionStage === "FINALIZED" ? "Entry confirmed" : game.action === "ENTERING" ? "Wallet request opened" : game.transactionStage === "FAILED" ? "Wallet rejected or transaction failed" : "No transaction started";
-  const copy = game.transactionStage === "ACCEPTED" ? "Your entry is visible as accepted. Finality continues; the chain remains authoritative." : game.transactionStage === "FINALIZED" ? game.config.entryAcceptedNote : game.transactionStage === "FAILED" ? "Nothing is locked unless the MEG contract shows the entry. Review the wallet message and try again." : game.transactionStage === "IDLE" ? "StudioNet state will appear here after a real wallet action." : "We are reading the real GenLayer transaction state.";
+  const copy = game.transactionStage === "ACCEPTED" ? "Your entry is visible as accepted. Finality continues; the chain remains authoritative." : game.transactionStage === "FINALIZED" ? game.config.entryAcceptedNote : game.transactionStage === "FAILED" ? "Nothing is locked unless the MEG contract shows the entry. Review the wallet message and try again." : game.transactionStage === "IDLE" ? "Studio Next state will appear here after a real wallet action." : "We are reading the real GenLayer transaction state.";
   return <div className={`transaction-state ${game.transactionStage === "FAILED" ? "is-error" : game.transactionStage === "FINALIZED" ? "is-good" : ""}`}><span className="state-led"><span /></span><div><strong>{label}</strong><small>{copy}</small></div>{game.transactionHash && <code>{game.transactionHash.slice(0, 10)}…</code>}</div>;
 }
 

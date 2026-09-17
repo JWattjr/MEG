@@ -71,7 +71,7 @@ export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
     void load();
     // One refresh reads the round, resolver, wallet entry, and all nine cell
     // pools. A one-minute cadence keeps the complete audit view courteous to
-    // public RPC limits on StudioNet.
+    // public RPC limits on Studio Next.
     const timer = window.setInterval(() => void load(), 60_000);
     return () => { active = false; window.clearInterval(timer); };
   }, [refresh]);

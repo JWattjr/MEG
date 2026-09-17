@@ -7,7 +7,7 @@ MEG is split into a browser product, a reusable market schema, and two fresh Gen
 ```text
 Next.js web client
   ├─ @meg/scoring market pack + packing + economics
-  ├─ StudioNet wagmi transport
+  ├─ Studio Next wagmi transport
   └─ game/resolver read + write adapters
 
 MomentEsportsGridGame
@@ -43,4 +43,4 @@ Option IDs are stable integers 1–27: `optionId = cellIndex * 3 + optionIndex +
 
 The client never accepts a caller-provided outcome. It does not claim that a blank-address preview is on chain. The resolver treats source text as untrusted evidence, never guesses unsupported facts, and compares the complete structured result—including all nine cell records—before persisting consensus. Contract addresses and source URLs are deployment inputs, not UI overrides.
 
-Automated direct tests run against local GenVM. The product configuration exposes StudioNet only; no other hosted network is presented in the UI.
+Automated direct tests run against local GenVM. The product configuration exposes Studio Next only; no other hosted network is presented in the UI.

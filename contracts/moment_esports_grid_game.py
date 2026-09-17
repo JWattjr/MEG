@@ -1,4 +1,4 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 """MEG's tier-weighted native-GEN pools and progressive jackpot.
 
@@ -10,7 +10,9 @@ settles the resolver's column bitmaps deterministically.
 
 from dataclasses import dataclass
 
+import genlayer as gl
 from genlayer import *
+from genlayer.storage import DynArray, TreeMap, allow as allow_storage
 
 
 OPEN = "OPEN"
@@ -88,7 +90,7 @@ class GridEntry:
 
 
 def _now_seconds() -> str:
-    value = str(gl.message_raw["datetime"])
+    value = str(gl.message.datetime)
     if len(value) < 19:
         raise gl.vm.UserError("Invalid network timestamp")
     return value[:19] + "Z"
@@ -158,7 +160,7 @@ def _jackpot_qualifies(marked_mask: int) -> bool:
     return horizontal and diagonal
 
 
-class MomentEsportsGridGame(gl.Contract):
+class MomentEsportsGridGame(gl.contract.Contract):
     owner: Address
     rounds: TreeMap[str, GameRound]
     round_ids: DynArray[str]

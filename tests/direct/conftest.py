@@ -1,8 +1,8 @@
-"""Cross-platform compatibility helpers for genlayer-test v0.29.
+"""Cross-platform compatibility helpers for genlayer-test v0.30 RC.
 
-The Direct VM refreshes ``gl.message`` after ``warp``/``value`` changes but
-does not refresh the same dynamic fields in ``gl.message_raw``. Contracts use
-the raw network timestamp, so keep both views synchronized on every platform.
+The Direct VM refreshes ``gl.message`` after sender/value changes but does not
+refresh the timestamp in ``gl.message.raw`` after ``warp``. Contracts use the
+network timestamp, so keep the loaded v0.6 message module synchronized.
 
 The test package also unlinks its temporary stdin file while fd 0 still points
 to it. POSIX permits that, Windows does not, so Windows delays only that unlink
@@ -10,26 +10,49 @@ until stdin has been restored. No contract behavior is changed.
 """
 
 import os
+import json
 
 from gltest.direct.vm import VMContext
 
 
 _original_refresh = VMContext._refresh_gl_message
+_original_mock_llm = VMContext.mock_llm
 
 
 def _refresh_dynamic_message_fields(self):
     _original_refresh(self)
     try:
-        import genlayer.gl as gl
+        import genlayer.message as message
 
-        if gl.message_raw is not None:
-            gl.message_raw["datetime"] = self._datetime
-            gl.message_raw["value"] = self._value
+        message.datetime = self._datetime
+        if isinstance(message.raw, dict):
+            message.raw["datetime"] = self._datetime
+            message.raw["value"] = self._value
     except ImportError:
         pass
 
 
 VMContext._refresh_gl_message = _refresh_dynamic_message_fields
+
+
+def _v06_compatible_mock_llm(self, prompt_pattern, response):
+    """Keep JSON prompt fixtures as JSON text for the v0.6 decoder.
+
+    The v0.30 direct harness eagerly parses mocked JSON strings into Python
+    objects, while v0.6 ``exec_prompt(response_format="json")`` expects the
+    nondeterministic payload to remain JSON text until it decodes it.
+    """
+    if isinstance(response, str):
+        try:
+            parsed = json.loads(response)
+        except (TypeError, ValueError):
+            parsed = None
+        if isinstance(parsed, (dict, list)):
+            response = json.dumps(response)
+    _original_mock_llm(self, prompt_pattern, response)
+
+
+VMContext.mock_llm = _v06_compatible_mock_llm
 
 
 if os.name == "nt":
@@ -40,8 +63,10 @@ if os.name == "nt":
     _original_cleanup = VMContext._cleanup_after_deactivate
 
     def _windows_safe_inject_message_to_fd0(vm):
-        from genlayer.py import calldata
-        from genlayer.py.types import Address
+        # v0.6 contracts expose the standard library as ``genlayer``;
+        # the former ``genlayer.py`` namespace no longer exists.
+        from genlayer import calldata
+        from genlayer.types import Address
 
         sender_addr = Address(vm.sender) if isinstance(vm.sender, bytes) else vm.sender
         contract_addr = (

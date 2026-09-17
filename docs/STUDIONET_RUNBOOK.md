@@ -1,4 +1,6 @@
-# StudioNet runbook
+# Legacy StudioNet runbook (archived)
+
+This document records the superseded chain-61999 deployment only. It is retained for audit history; new launches must use the Studio Next runbook and chain 61997.
 
 This is an operator checklist for a fresh MEG deployment. It does not deploy or fund anything by itself.
 

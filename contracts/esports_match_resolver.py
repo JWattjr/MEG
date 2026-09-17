@@ -1,4 +1,4 @@
-# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
+# { "Depends": "py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng" }
 
 """GenLayer resolver for a registered Valorant series.
 
@@ -10,7 +10,9 @@ contract, but evidence status and reason codes remain available per cell.
 import json
 from dataclasses import dataclass
 
+import genlayer as gl
 from genlayer import *
+from genlayer.storage import DynArray, TreeMap, allow as allow_storage
 
 
 PENDING = "PENDING"
@@ -38,7 +40,7 @@ ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 MAP_DEPENDENT_CELLS = [1, 4, 7]
 
 
-@gl.contract_interface
+@gl.contract.interface
 class MomentEsportsGridSettlementInterface:
     class View:
         pass
@@ -55,6 +57,7 @@ class MomentEsportsGridSettlementInterface:
             window_0_valid_bitmap: u256,
             window_1_valid_bitmap: u256,
             window_2_valid_bitmap: u256,
+            /,
         ) -> None: ...
 
 
@@ -93,7 +96,7 @@ class RoundResolution:
 
 
 def _now_seconds() -> str:
-    value = str(gl.message_raw["datetime"])
+    value = str(gl.message.datetime)
     if len(value) < 19:
         raise gl.vm.UserError("Invalid network timestamp")
     return value[:19] + "Z"
@@ -380,7 +383,7 @@ evidence must leave that cell unsupported; it must never become FALSE.
     return _adjudication(SETTLED, "FINAL_FACTS_AGREED", FINAL, facts["evidence_summary"], available_urls, cells)
 
 
-class EsportsMatchResolver(gl.Contract):
+class EsportsMatchResolver(gl.contract.Contract):
     owner: Address
     resolutions: TreeMap[str, RoundResolution]
     resolution_ids: DynArray[str]
@@ -488,7 +491,7 @@ class EsportsMatchResolver(gl.Contract):
             except Exception:
                 return False
 
-        adjudication = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        adjudication = gl.vm.run_nondet(leader_fn, validator_fn)
         resolution.attempt_count += 1
         resolution.reason_code = adjudication["reason_code"]
         resolution.match_status = adjudication["match_status"]
@@ -503,7 +506,7 @@ class EsportsMatchResolver(gl.Contract):
             resolution.window_0_valid_bitmap = u256(adjudication["window_0_valid_bitmap"])
             resolution.window_1_valid_bitmap = u256(adjudication["window_1_valid_bitmap"])
             resolution.window_2_valid_bitmap = u256(adjudication["window_2_valid_bitmap"])
-            resolution.resolved_at = str(gl.message_raw["datetime"])
+            resolution.resolved_at = str(gl.message.datetime)
 
     @gl.public.write
     def dispatch_resolution(self, resolution_id: str) -> None:

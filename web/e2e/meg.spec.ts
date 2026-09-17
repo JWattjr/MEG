@@ -13,7 +13,7 @@ test("home exposes the nine-call verified Valorant board", async ({ page }) => {
   expect(filled).toBe(true);
   await expect(page.getByRole("button", { name: /Review my nine calls/i })).toBeVisible();
   await page.getByRole("button", { name: /Review my nine calls/i }).click();
-  await expect(page.getByRole("button", { name: /StudioNet lock unavailable/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Studio Next lock unavailable/i })).toBeVisible();
 });
 
 test("supporting routes disclose configuration and verified data", async ({ page }) => {

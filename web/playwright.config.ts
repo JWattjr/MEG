@@ -15,7 +15,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      NEXT_PUBLIC_GENLAYER_GAME_NETWORK: "studionet",
+      NEXT_PUBLIC_GENLAYER_GAME_NETWORK: "studio-next",
       NEXT_PUBLIC_GENLAYER_GAME_RPC_URL: "",
       NEXT_PUBLIC_GENLAYER_GAME_ADDRESS: "",
       NEXT_PUBLIC_GENLAYER_ROUND_RESOLVER_ADDRESS: "",

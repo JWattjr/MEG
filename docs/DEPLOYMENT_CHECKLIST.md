@@ -1,6 +1,6 @@
 # MEG deployment checklist
 
-Deployment is intentionally manual and out of scope for this rebuild. Complete every gate before any public StudioNet launch.
+Complete every gate before the public Studio Next launch. Deployment evidence belongs in `docs/STUDIO_NEXT_RUNBOOK.md`; no private key belongs in this repository or the frontend environment.
 
 ## Repository gate
 
@@ -26,7 +26,7 @@ Deployment is intentionally manual and out of scope for this rebuild. Complete e
 
 ## Launch gate
 
-- [ ] `NEXT_PUBLIC_GENLAYER_GAME_NETWORK=studionet` is set; no private key is exposed to Next.js.
+- [ ] `NEXT_PUBLIC_GENLAYER_GAME_NETWORK=studio-next` is set for the 61997 Studio Next chain; no private key is exposed to Next.js.
 - [ ] Any bots are explicitly authorized, publicly disclosed, and separately funded.
 - [ ] Operators have a rollback/pause contact and a written evidence/recovery record.
 - [ ] No public launch, contract funding, or traffic switch occurs until the operator explicitly approves it.

@@ -1,7 +1,8 @@
 import { allocateStake, MAXIMUM_STAKE_WEI as SHARED_MAXIMUM_STAKE_WEI, MINIMUM_STAKE_WEI as SHARED_MINIMUM_STAKE_WEI, packGrid, type MarketOptionId } from "@meg/scoring";
+import { createTransactionKit, type SubmitInput } from "@genlayer/transaction-kit";
 import { createClient } from "genlayer-js";
-import { localnet, studionet } from "genlayer-js/chains";
-import { ExecutionResult, TransactionStatus, type CalldataEncodable, type TransactionHash } from "genlayer-js/types";
+import { localnet, studioDevnet } from "genlayer-js/chains";
+import { ExecutionResult, type CalldataEncodable, type TransactionHash } from "genlayer-js/types";
 import { formatEther, isAddress, parseEther } from "viem";
 
 export const MINIMUM_STAKE_GEN = "1";
@@ -91,11 +92,11 @@ export type GameCellPool = {
 };
 
 type GenLayerClientConfig = NonNullable<Parameters<typeof createClient>[0]>;
-const requestedNetwork = process.env.NEXT_PUBLIC_GENLAYER_GAME_NETWORK ?? "studionet";
-const networkSetting = requestedNetwork === "localnet" ? "localnet" : "studionet";
+const requestedNetwork = process.env.NEXT_PUBLIC_GENLAYER_GAME_NETWORK?.trim().toLowerCase() ?? "studio-next";
+const networkSetting = requestedNetwork === "localnet" ? "localnet" : "studio-next";
 const networks = {
   localnet: { chain: localnet, connectName: "localnet" as const },
-  studionet: { chain: studionet, connectName: "studionet" as const },
+  "studio-next": { chain: studioDevnet, connectName: "studioDevnet" as const },
 };
 const selectedNetwork = networks[networkSetting];
 const contractAddress = process.env.NEXT_PUBLIC_GENLAYER_GAME_ADDRESS ?? "";
@@ -107,8 +108,8 @@ const botAddresses = (process.env.NEXT_PUBLIC_GENLAYER_BOT_ADDRESSES ?? "")
   .filter((value, index, values) => isAddress(value) && values.indexOf(value) === index);
 const formBotAddress = process.env.NEXT_PUBLIC_GENLAYER_FORM_BOT_ADDRESS?.trim().toLowerCase() ?? "";
 const chaosBotAddress = process.env.NEXT_PUBLIC_GENLAYER_CHAOS_BOT_ADDRESS?.trim().toLowerCase() ?? "";
-const endpoint = process.env.NEXT_PUBLIC_GENLAYER_GAME_RPC_URL?.trim() || (networkSetting === "studionet" && typeof window !== "undefined" ? "/api/genlayer" : undefined);
-const networkLabel = networkSetting === "studionet" ? "StudioNet" : "Localnet test";
+const endpoint = process.env.NEXT_PUBLIC_GENLAYER_GAME_RPC_URL?.trim() || (networkSetting === "studio-next" && typeof window !== "undefined" ? "/api/genlayer" : undefined);
+const networkLabel = networkSetting === "studio-next" ? "Studio Next" : "Localnet test";
 
 export const genLayerGameConfig = {
   contractAddress,
@@ -120,9 +121,9 @@ export const genLayerGameConfig = {
   enabled: isAddress(contractAddress) && isAddress(resolverAddress),
   activeRoundEnabled: isAddress(contractAddress) && isAddress(resolverAddress) && Boolean(roundId),
   botAddresses,
-  deploymentLabel: networkSetting === "studionet" ? "StudioNet · MEG" : "Localnet · tests only",
+  deploymentLabel: networkSetting === "studio-next" ? "Studio Next · MEG" : "Localnet · tests only",
   networkLabel,
-  validatorLabel: networkSetting === "studionet" ? "StudioNet validators" : "local test validators",
+  validatorLabel: networkSetting === "studio-next" ? "Studio Next validators" : "local test validators",
   entryLockNote: `After acceptance, the grid is immutable and the registered series stays fixed on ${networkLabel}.`,
   entryAcceptedNote: `Accepted by ${networkLabel} validators. Your entry is recorded on the MEG game contract.`,
 };
@@ -149,12 +150,12 @@ function client(account?: `0x${string}`, provider?: GenLayerClientConfig["provid
 }
 
 function gameAddress(): `0x${string}` {
-  if (!isAddress(contractAddress)) throw new Error("The MEG game contract is not configured for StudioNet.");
+  if (!isAddress(contractAddress)) throw new Error("The MEG game contract is not configured for Studio Next.");
   return contractAddress;
 }
 
 function roundResolverAddress(): `0x${string}` {
-  if (!isAddress(resolverAddress)) throw new Error("The MEG resolver contract is not configured for StudioNet.");
+  if (!isAddress(resolverAddress)) throw new Error("The MEG resolver contract is not configured for Studio Next.");
   return resolverAddress;
 }
 
@@ -163,28 +164,44 @@ async function assertExecution(receipt: { txExecutionResultName?: string; consen
   if (receipt.txExecutionResultName !== ExecutionResult.FINISHED_WITH_RETURN && leaderExecution !== "SUCCESS") throw new Error(`GenLayer ${phase} the transaction, but execution failed (${receipt.txExecutionResultName ?? leaderExecution ?? "UNKNOWN"}).`);
 }
 
+function makeWriteInput(address: `0x${string}`, functionName: string, args: CalldataEncodable[]): SubmitInput {
+  return { kind: "write", address, method: functionName, args };
+}
+
+function makeTransactionKit(account: `0x${string}`, provider: GenLayerProvider) {
+  return createTransactionKit({ chain: selectedNetwork.chain, provider, account });
+}
+
+function assertFeeQuote(quote: Awaited<ReturnType<ReturnType<typeof makeTransactionKit>["estimate"]>>) {
+  if (quote.verification.status === "mismatch") {
+    throw new Error("Studio Next fee policy changed while this transaction was being prepared. Refresh and try again.");
+  }
+}
+
+async function submitWithKit(account: `0x${string}`, provider: GenLayerProvider, address: `0x${string}`, functionName: string, args: CalldataEncodable[], value: bigint, until: "decided" | "finalized", onSubmitted?: (hash: `0x${string}`) => void): Promise<`0x${string}`> {
+  const transaction = makeWriteInput(address, functionName, args);
+  const kit = makeTransactionKit(account, provider);
+  const quote = await kit.estimate({ preset: "standard", userValue: value }, transaction);
+  assertFeeQuote(quote);
+  const submitted = await kit.submit(quote, transaction);
+  onSubmitted?.(submitted.genlayerTxId);
+  const tracked = await kit.track(submitted.genlayerTxId, () => undefined, { until });
+  if (tracked.successful !== true) {
+    throw new Error(`Studio Next decided the transaction without a successful execution (${tracked.executionResultName ?? tracked.statusName ?? "UNKNOWN"}).`);
+  }
+  return submitted.genlayerTxId;
+}
+
 async function writeFinalized(account: `0x${string}`, provider: GenLayerProvider, address: `0x${string}`, functionName: string, args: CalldataEncodable[], value = 0n, onSubmitted?: (hash: `0x${string}`) => void): Promise<`0x${string}`> {
-  const writeClient = client(account, provider);
-  await writeClient.connect(selectedNetwork.connectName);
-  const hash = await writeClient.writeContract({ address, functionName, args, value });
-  onSubmitted?.(hash);
-  const receipt = await client().waitForTransactionReceipt({ hash: hash as TransactionHash, status: TransactionStatus.FINALIZED, interval: 3_000, retries: 240 });
-  await assertExecution(receipt, "finalized");
-  return hash;
+  return submitWithKit(account, provider, address, functionName, args, value, "finalized", onSubmitted);
 }
 
 async function writeAccepted(account: `0x${string}`, provider: GenLayerProvider, address: `0x${string}`, functionName: string, args: CalldataEncodable[], value = 0n, onSubmitted?: (hash: `0x${string}`) => void): Promise<`0x${string}`> {
-  const writeClient = client(account, provider);
-  await writeClient.connect(selectedNetwork.connectName);
-  const hash = await writeClient.writeContract({ address, functionName, args, value });
-  onSubmitted?.(hash);
-  const receipt = await client().waitForTransactionReceipt({ hash, status: TransactionStatus.ACCEPTED, interval: 3_000, retries: 240 });
-  await assertExecution(receipt, "accepted");
-  return hash;
+  return submitWithKit(account, provider, address, functionName, args, value, "decided", onSubmitted);
 }
 
 export async function waitForGameTransactionFinality(hash: `0x${string}`): Promise<void> {
-  const receipt = await client().waitForTransactionReceipt({ hash: hash as TransactionHash, status: TransactionStatus.FINALIZED, interval: 3_000, retries: 240 });
+  const receipt = await client().waitForTransactionReceipt({ hash: hash as TransactionHash, waitUntil: "finalized", interval: 3_000, retries: 240 });
   await assertExecution(receipt, "finalized");
 }
 

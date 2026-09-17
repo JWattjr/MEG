@@ -30,7 +30,7 @@ export function RankingsClient() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
-  if (!genLayerGameConfig.enabled) return <div className="empty-state"><Trophy size={20} /><strong>Rankings wait for settled rounds.</strong><span>No live leaderboard is fabricated in preview mode. Configure a fresh MEG StudioNet game to index human entries.</span></div>;
+  if (!genLayerGameConfig.enabled) return <div className="empty-state"><Trophy size={20} /><strong>Rankings wait for settled rounds.</strong><span>No live leaderboard is fabricated in preview mode. Configure a fresh MEG Studio Next game to index human entries.</span></div>;
   if (loading) return <div className="empty-state"><ShieldCheck size={20} /><strong>Reading settled entries…</strong><span>Only contract-indexed entries are considered.</span></div>;
   if (error) return <div className="notice-strip" role="alert"><ShieldCheck size={15} />{error}</div>;
   if (rankings.length === 0) return <div className="empty-state"><Medal size={20} /><strong>No human entries yet.</strong><span>Disclosed automated liquidity is excluded from this list by design.</span></div>;

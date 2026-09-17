@@ -21,7 +21,7 @@ export function MomentHeader({ onOpenGuide }: { onOpenGuide?: () => void }) {
         <small>Moment Esports Grid</small>
       </Link>
       <div className="header-actions">
-        <span className="network-chip"><Radio size={12} /> StudioNet only</span>
+        <span className="network-chip"><Radio size={12} /> Studio Next only</span>
         {onOpenGuide && <button className="icon-button" type="button" onClick={onOpenGuide} aria-label="Open Guided Play" title="Guided Play"><HelpCircle size={16} /></button>}
         <WalletButton />
       </div>

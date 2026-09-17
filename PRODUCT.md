@@ -29,12 +29,12 @@ The product is mobile-first and intended for a fast pre-series decision, a locke
 ## Capabilities and Constraints
 
 - Nine cells arranged by COMMON, MEDIUM, and RARE rows and TEAM, MAP, and PLAYER columns.
-- One payable grid transaction on GenLayer StudioNet; minimum stake is 1 test GEN.
+- One payable grid transaction on GenLayer Studio Next; minimum stake is 1 test GEN.
 - Three common cells receive 15% total, three medium cells 30%, three rare cells 45%, 5% funds the jackpot, and 5% is platform revenue.
 - Cell pools never transfer money between one another. Correct predictors share only their cell’s available payout.
 - A row and a diagonal qualify a player for the jackpot. Invalid cells refund their affected cell stake; underfilled, cancelled, and timeout rounds support full refunds.
 - Resolution requires registered sources and persisted GenLayer consensus after the series is complete. Missing or conflicting evidence is INVALID, never automatically FALSE.
-- StudioNet is the only supported public network. Localnet may be used for automated tests.
+- Studio Next is the only supported public network. Localnet may be used for automated tests.
 - League of Legends and Call of Duty market packs are future extensions and are not implemented now.
 - The product does not request or store private keys, wallet passwords, or secrets.
 
@@ -48,7 +48,7 @@ The product is mobile-first and intended for a fast pre-series decision, a locke
 
 ## Evidence on Hand
 
-The source project provides tested economic and GenLayer lifecycle patterns. MEG has no verified live Valorant fixture at this stage. Any local fixture, match statistic, player name, balance, or outcome used for development must be labeled synthetic or illustrative. Two disclosed test bots are supported by the architecture but are not run or funded in this build.
+The source project provides tested economic and GenLayer lifecycle patterns. The initial MEG pack uses a verified upcoming Valorant Champions fixture with official schedule and VLR references; map veto and final outcomes remain explicitly pending until the match record is final. Any local fallback fixture, match statistic, balance, or outcome used for development must be labeled synthetic or illustrative. Two disclosed test bots are supported by the architecture but are not run or funded in this build.
 
 ## Product Principles
 

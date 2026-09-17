@@ -1,4 +1,4 @@
-const STUDIO_RPC_URL = process.env.GENLAYER_GAME_RPC_URL ?? "https://studio.genlayer.com/api";
+const STUDIO_RPC_URL = process.env.GENLAYER_GAME_RPC_URL?.trim() || "https://studio-next.genlayer.com/api";
 const BLOCKED_METHODS = new Set([
   "eth_sendTransaction",
   "eth_sendRawTransaction",
@@ -50,7 +50,7 @@ export async function POST(request: Request): Promise<Response> {
       headers: { "cache-control": "no-store", "content-type": upstream.headers.get("content-type") ?? "application/json" },
     });
   } catch {
-    return Response.json({ jsonrpc: "2.0", id, error: { code: -32000, message: "StudioNet RPC is temporarily unavailable." } }, { status: 502 });
+    return Response.json({ jsonrpc: "2.0", id, error: { code: -32000, message: "Studio Next RPC is temporarily unavailable." } }, { status: 502 });
   } finally {
     clearTimeout(timeout);
   }
