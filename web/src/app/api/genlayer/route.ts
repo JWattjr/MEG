@@ -1,4 +1,4 @@
-const STUDIO_RPC_URL = process.env.GENLAYER_GAME_RPC_URL?.trim() || "https://studio-next.genlayer.com/api";
+const STUDIO_RPC_URL = process.env.GENLAYER_GAME_RPC_URL?.trim() || "https://studio-dev.genlayer.com/api";
 const BLOCKED_METHODS = new Set([
   "eth_sendTransaction",
   "eth_sendRawTransaction",

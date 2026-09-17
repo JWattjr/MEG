@@ -6,8 +6,6 @@ networks:
 
   studionet: {}
 
-  studio_devnet: {}
-
 paths:
   contracts: "contracts"
 

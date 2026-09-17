@@ -5,7 +5,7 @@ This is the operator record for the MEG hackathon deployment on GenLayer Studio 
 ## Preflight
 
 1. Use the matching RC stack: `genlayer-js@2.0.0-rc.1`, `@genlayer/transaction-kit@0.1.0-rc.2`, `genlayer@0.40.0-rc.3`, and the GenLayer Python v0.19 RC line.
-2. Confirm the RPC is `https://studio-next.genlayer.com/api` (the SDK’s `studioDevnet` alias resolves to the same chain through `https://studio-dev.genlayer.com/api`).
+2. Confirm the canonical RPC is `https://studio-dev.genlayer.com/api` (the browser alias `https://studio-next.genlayer.com/api` may resolve to the same chain).
 3. Confirm chain ID `61997` and explorer `https://explorer-studio-dev.genlayer.com/`.
 4. Run the frontend checks, direct contract tests, GenVM lint, and read-only contract validation before deployment.
 5. Review the verified fixture: Team Liquid vs Paper Rex, Valorant Champions 2026 Group Stage Opening (C), best-of-three, Map 1 veto pending, with the locked official schedule and VLR source URLs.
@@ -41,6 +41,6 @@ The following fields are filled only after a fresh transaction is finalized on S
 
 - Repository: `https://github.com/JWattjr/MEG`
 - Branch: `codex/studio-next-launch`
-- Public app URL: https://moment-grid-genlayer-9mc6wwr60-wattxs-projects.vercel.app
+- Public app URL: https://moment-grid-genlayer.vercel.app
 - Public contract addresses and transaction hashes: recorded above; each transaction finalized with accepted consensus
 - Demo video: record the script in `docs/DEMO_VIDEO_SCRIPT.md`; do not claim a video URL until it is uploaded.

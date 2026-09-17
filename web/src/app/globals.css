@@ -52,6 +52,8 @@ code, .mono { font-family: var(--mono); }
 .wallet-popover button, .wallet-popover a { padding: 9px 10px; color: var(--ink); background: var(--paper-deep); border: 1px solid var(--ink); font-family: var(--mono); font-size: 10px; text-align: left; text-decoration: none; }
 .wallet-popover button:hover, .wallet-popover a:hover { background: var(--lime); }
 .wallet-popover .error-message { color: #982d1f; font-size: 11px; }
+.wallet-funding { display: grid; gap: 8px; padding: 10px; background: var(--paper); border: 1px solid var(--rule); }
+.wallet-funding p { color: var(--ink); font-size: 11px; }
 .moment-nav { display: flex; align-items: stretch; justify-content: space-between; gap: 20px; min-height: 48px; padding: 0 28px; color: var(--white); background: var(--ink); border-bottom: 1px solid #2d435b; }
 .nav-primary, .trust-links { display: flex; align-items: stretch; gap: 18px; }
 .moment-nav a { display: inline-flex; align-items: center; gap: 7px; color: #9fb0bf; font-family: var(--mono); font-size: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }

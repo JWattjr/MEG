@@ -3,11 +3,11 @@
 ## Public deployment
 
 - Repository: https://github.com/JWattjr/MEG
-- Branch: `codex/studio-next-launch`
-- Public Preview: https://moment-grid-genlayer-9mc6wwr60-wattxs-projects.vercel.app
+- Branch: `main`
+- Public Production: https://moment-grid-genlayer.vercel.app
 - Network: Studio Next / GenLayer Studio Devnet
 - Chain ID: `61997`
-- RPC: `https://studio-next.genlayer.com/api`
+- RPC: `https://studio-dev.genlayer.com/api`
 - Explorer: https://explorer-studio-dev.genlayer.com/
 - Game contract: `0x3Dc2e4Bc192f0C39bA3930BB584342906d30e75a`
 - Resolver contract: `0x54EfF381f3DE7809653ddbaCdCF40f1f6bcF4d97`
@@ -25,6 +25,6 @@ All four transactions finalized with accepted consensus. The round is `OPEN`; th
 
 ## Submission items still requiring a human
 
-- Paste the deployed Preview URL after the Vercel build completes.
+- Confirm the deployed Production URL after the Vercel build completes.
 - Record and upload the mandatory demo video using [`docs/DEMO_VIDEO_SCRIPT.md`](DEMO_VIDEO_SCRIPT.md).
-- Submit the Portal entry and include this repository, the Preview URL, the contract addresses, and the demo video URL.
+- Submit the Portal entry and include this repository, the Production URL, the contract addresses, and the demo video URL.
