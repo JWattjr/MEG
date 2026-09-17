@@ -4,6 +4,7 @@ import { createClient } from "genlayer-js";
 import { localnet, studioDevnet } from "genlayer-js/chains";
 import { ExecutionResult, type CalldataEncodable, type TransactionHash } from "genlayer-js/types";
 import { formatEther, isAddress, parseEther } from "viem";
+import { ensureStudioNextNetwork, type Eip1193Provider } from "./wagmi";
 
 export const MINIMUM_STAKE_GEN = "1";
 export const MINIMUM_STAKE_WEI = SHARED_MINIMUM_STAKE_WEI;
@@ -172,6 +173,70 @@ function makeTransactionKit(account: `0x${string}`, provider: GenLayerProvider) 
   return createTransactionKit({ chain: selectedNetwork.chain, provider, account });
 }
 
+function parseRpcQuantity(value: unknown, label: string): number {
+  if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) return value;
+  if (typeof value === "string" && /^0x[0-9a-f]+$/iu.test(value)) {
+    const parsed = Number(BigInt(value));
+    if (Number.isSafeInteger(parsed)) return parsed;
+  }
+  throw new Error(`Studio Next returned an invalid ${label}. Refresh and try again.`);
+}
+
+async function assertStudioNextWalletState(account: `0x${string}`, provider: GenLayerProvider): Promise<void> {
+  if (networkSetting !== "studio-next") return;
+
+  // Re-run the network switch immediately before signing. This also covers a
+  // wallet that was switched away from Studio Next after the initial connect.
+  await ensureStudioNextNetwork(provider as Eip1193Provider);
+
+  const chainId = await provider.request({ method: "eth_chainId" });
+  const expectedChainId = `0x${selectedNetwork.chain.id.toString(16)}`;
+  if (chainId !== expectedChainId) {
+    throw new Error(`Wallet is on the wrong network. Select Studio Next (chain ID ${selectedNetwork.chain.id}) and try again.`);
+  }
+
+  // The injected wallet and the canonical RPC must agree before a wallet
+  // popup is opened. A same-chain wallet entry can still point at an old RPC
+  // definition, which is exactly how a valid chain ID can produce nonce 0.
+  let walletNonce: number | undefined;
+  try {
+    walletNonce = parseRpcQuantity(await provider.request({
+      method: "eth_getTransactionCount",
+      params: [account, "pending"],
+    }), "wallet nonce");
+  } catch {
+    // Some injected wallets do not expose read methods. The SDK will still
+    // perform its canonical nonce read and the wallet can choose its nonce.
+  }
+
+  if (walletNonce === undefined) return;
+  const canonicalNonce = await client().getCurrentNonce({ address: account });
+  if (walletNonce !== canonicalNonce) {
+    throw new Error(`Your wallet is using a stale Studio Next RPC (wallet nonce ${walletNonce}, current chain nonce ${canonicalNonce}). Remove and re-add the Studio Next network with RPC ${"https://studio-dev.genlayer.com/api"}, then reconnect.`);
+  }
+}
+
+function withWalletNonceCompatibility(provider: GenLayerProvider): GenLayerProvider {
+  const requestProvider = provider as unknown as Eip1193Provider;
+  return new Proxy(provider as object, {
+    get(target, property, receiver) {
+      if (property !== "request") return Reflect.get(target, property, receiver);
+      return async (request: { method: string; params?: readonly unknown[] }) => {
+        if (request.method !== "eth_sendTransaction") return requestProvider.request(request);
+        const transaction = request.params?.[0];
+        if (!transaction || typeof transaction !== "object" || Array.isArray(transaction)) return requestProvider.request(request);
+
+        // genlayer-js includes a nonce in its EIP-1193 request. For Studio
+        // Next injected wallets, omitting it lets the wallet query its own
+        // freshly selected network and prevents it from submitting a cached
+        // zero nonce. The preflight above ensures both views agree first.
+        const walletTransaction = Object.fromEntries(Object.entries(transaction).filter(([key]) => key !== "nonce"));
+        return requestProvider.request({ ...request, params: [walletTransaction, ...(request.params?.slice(1) ?? [])] });
+      };
+    },
+  }) as GenLayerProvider;
+}
+
 function assertFeeQuote(quote: Awaited<ReturnType<ReturnType<typeof makeTransactionKit>["estimate"]>>) {
   if (quote.verification.status === "mismatch") {
     throw new Error("Studio Next fee policy changed while this transaction was being prepared. Refresh and try again.");
@@ -179,8 +244,9 @@ function assertFeeQuote(quote: Awaited<ReturnType<ReturnType<typeof makeTransact
 }
 
 async function submitWithKit(account: `0x${string}`, provider: GenLayerProvider, address: `0x${string}`, functionName: string, args: CalldataEncodable[], value: bigint, until: "decided" | "finalized", onSubmitted?: (hash: `0x${string}`) => void): Promise<`0x${string}`> {
+  await assertStudioNextWalletState(account, provider);
   const transaction = makeWriteInput(address, functionName, args);
-  const kit = makeTransactionKit(account, provider);
+  const kit = makeTransactionKit(account, withWalletNonceCompatibility(provider));
   const quote = await kit.estimate({ preset: "standard", userValue: value }, transaction);
   assertFeeQuote(quote);
   const submitted = await kit.submit(quote, transaction);

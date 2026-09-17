@@ -26,6 +26,14 @@ export type OnchainGameAction = "IDLE" | "ENTERING" | "RESOLVING" | "DISPATCHING
 export type TransactionStage = "IDLE" | "SUBMITTED" | "CONSENSUS" | "ACCEPTED" | "FINALIZED" | "FAILED";
 type Operation = (account: `0x${string}`, provider: GenLayerProvider, onSubmitted: (hash: `0x${string}`) => void) => Promise<`0x${string}`>;
 
+function explainTransactionError(caught: unknown, fallback: string): string {
+  const message = caught instanceof Error ? caught.message : typeof caught === "string" ? caught : "";
+  if (/nonce is not consistent|tx nonce/i.test(message)) {
+    return "Studio Next rejected a stale wallet nonce. No entry was created. Remove and re-add Studio Next with RPC https://studio-dev.genlayer.com/api, reconnect, and retry once.";
+  }
+  return message || fallback;
+}
+
 export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
   const { address, connector } = useAccount();
   const [round, setRound] = useState<GameRoundRecord | null>(null);
@@ -100,7 +108,7 @@ export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
     } catch (caught) {
       setAction("ERROR");
       setTransactionStage("FAILED");
-      setError(caught instanceof Error ? caught.message : "The GenLayer transaction failed.");
+      setError(explainTransactionError(caught, "The GenLayer transaction failed."));
       return false;
     }
   }, [address, provider, refresh]);
@@ -136,7 +144,7 @@ export function useOnchainGame(selectedRoundId = genLayerGameConfig.roundId) {
     } catch (caught) {
       setAction("ERROR");
       setTransactionStage("FAILED");
-      setError(caught instanceof Error ? caught.message : "The GenLayer transaction failed.");
+      setError(explainTransactionError(caught, "The GenLayer transaction failed."));
       return false;
     }
   }, [address, provider, refresh]);
