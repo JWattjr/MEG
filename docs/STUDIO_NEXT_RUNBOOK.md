@@ -16,7 +16,7 @@ The following fields are filled only after a fresh transaction is finalized on S
 
 - Network: `GenLayer Studio Devnet` / Studio Next
 - Chain ID: `61997`
-- RPC: `https://studio-next.genlayer.com/api`
+- RPC: `https://studio-dev.genlayer.com/api`
 - Explorer: `https://explorer-studio-dev.genlayer.com/`
 - Game contract: `0x3Dc2e4Bc192f0C39bA3930BB584342906d30e75a`
 - Game deployment transaction: `0x782ab7b1368e536f0a1e2184297a282eca0eb25fa9e59a020e779bb1a815e7f4`
@@ -40,7 +40,7 @@ The following fields are filled only after a fresh transaction is finalized on S
 ## Vercel and submission evidence
 
 - Repository: `https://github.com/JWattjr/MEG`
-- Branch: `codex/studio-next-launch`
+- Branch: `main`
 - Public app URL: https://moment-grid-genlayer.vercel.app
 - Public contract addresses and transaction hashes: recorded above; each transaction finalized with accepted consensus
 - Demo video: record the script in `docs/DEMO_VIDEO_SCRIPT.md`; do not claim a video URL until it is uploaded.

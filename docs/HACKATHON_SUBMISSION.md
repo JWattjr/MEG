@@ -25,6 +25,6 @@ All four transactions finalized with accepted consensus. The round is `OPEN`; th
 
 ## Submission items still requiring a human
 
-- Confirm the deployed Production URL after the Vercel build completes.
+- Production URL confirmed live: https://moment-grid-genlayer.vercel.app
 - Record and upload the mandatory demo video using [`docs/DEMO_VIDEO_SCRIPT.md`](DEMO_VIDEO_SCRIPT.md).
 - Submit the Portal entry and include this repository, the Production URL, the contract addresses, and the demo video URL.

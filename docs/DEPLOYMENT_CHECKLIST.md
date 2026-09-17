@@ -1,13 +1,13 @@
 # MEG deployment checklist
 
-Complete every gate before the public Studio Next launch. Deployment evidence belongs in `docs/STUDIO_NEXT_RUNBOOK.md`; no private key belongs in this repository or the frontend environment.
+This checklist records the current public Studio Next launch state. Deployment evidence belongs in `docs/STUDIO_NEXT_RUNBOOK.md`; no private key belongs in this repository or the frontend environment.
 
 ## Repository gate
 
 - [ ] Target workspace contains no `.git`, `.next`, `node_modules`, logs, secret env files, or source-only unrelated game directories.
 - [ ] No source-era sport, legacy product, or legacy network language remains in product UI, docs, config, or public routes.
 - [ ] Root and web package names are `meg` / `web`; shared package is `@meg/scoring`.
-- [ ] Git history, remotes, commits, pushes, and deployment commands remain untouched.
+- [x] `main` is pushed to `https://github.com/JWattjr/MEG` and the production deployment points to the reviewed release commit.
 
 ## Product gate
 
@@ -29,4 +29,4 @@ Complete every gate before the public Studio Next launch. Deployment evidence be
 - [ ] `NEXT_PUBLIC_GENLAYER_GAME_NETWORK=studio-next` is set for the 61997 Studio Next chain; no private key is exposed to Next.js.
 - [ ] Any bots are explicitly authorized, publicly disclosed, and separately funded.
 - [ ] Operators have a rollback/pause contact and a written evidence/recovery record.
-- [ ] No public launch, contract funding, or traffic switch occurs until the operator explicitly approves it.
+- [x] Public launch is live at `https://moment-grid-genlayer.vercel.app` on Studio Next.
