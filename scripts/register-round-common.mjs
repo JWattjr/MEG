@@ -62,7 +62,13 @@ export function checkRegistrationProof(tx, spec, kind) {
   requireThat(publicAddress(tx.recipient ?? tx.to_address) === publicAddress(spec.resolver), 'Registration proof targets another resolver.');
   const expected = abi.calldata.encode(abi.calldata.makeCalldataObject('register_round', resolverArguments(spec, kind)));
   const actual = tx.txDataDecoded?.callData;
-  requireThat(actual && Buffer.from(abi.calldata.encode(actual)).equals(Buffer.from(expected)), 'Registration proof calldata differs from fixture, including sources.');
+  // Studio returns base64 calldata (wrapped by decodeLocalnetTransaction),
+  // while the train SDK returns txDataDecoded.callData. Support both formats.
+  const calldata = tx.data?.calldata;
+  const base64 = typeof calldata === 'string' ? calldata : calldata?.base64;
+  const bytes = actual ? Buffer.from(abi.calldata.encode(actual))
+    : typeof base64 === 'string' ? Buffer.from(base64, 'base64') : undefined;
+  requireThat(bytes && bytes.equals(Buffer.from(expected)), 'Registration proof calldata differs from fixture, including sources.');
 }
 export async function registerRound(kind, argv, { client = readClient(), signer = signingClient, load = (path) => JSON.parse(readFileSync(path, 'utf8')) } = {}) {
   // With no fixture, --dry-run is deployment inspection only and exits 2.

@@ -44,6 +44,10 @@ test('game binding includes IDs, timing and all economic thresholds', () => {
 test('existing Valorant sources require exact finalized registration calldata', () => {
   const tx = { statusName: 'FINALIZED', txExecutionResultName: 'FINISHED_WITH_RETURN', recipient: spec.resolver, txDataDecoded: { callData: abi.calldata.makeCalldataObject('register_round', resolverArguments(spec, 'valorant')) } };
   assert.doesNotThrow(() => checkRegistrationProof(tx, spec, 'valorant'));
+  const base64 = Buffer.from(abi.calldata.encode(tx.txDataDecoded.callData)).toString('base64');
+  assert.doesNotThrow(() => checkRegistrationProof({ ...tx, txDataDecoded: undefined, data: { calldata: { base64 } } }, spec, 'valorant'));
+  assert.doesNotThrow(() => checkRegistrationProof({ ...tx, txDataDecoded: undefined, data: { calldata: base64 } }, spec, 'valorant'));
+  assert.throws(() => checkRegistrationProof({ ...tx, txDataDecoded: undefined }, spec, 'valorant'));
   assert.throws(() => checkRegistrationProof({ ...tx, recipient: NETWORK.game }, spec, 'valorant'));
   const wrong = structuredClone(spec); wrong.metadata.source_urls[0] = 'https://www.vlr.gg/wrong';
   assert.throws(() => checkRegistrationProof(tx, wrong, 'valorant'));
