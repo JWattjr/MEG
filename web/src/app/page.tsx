@@ -1,6 +1,6 @@
 import { GameShell } from "@/components/game-shell";
 
-export default async function Home({ searchParams }: { searchParams: Promise<{ round?: string }> }) {
-  const { round } = await searchParams;
-  return <GameShell key={round ?? "default-round"} roundId={round} />;
+export default async function Home({ searchParams }: { searchParams: Promise<{ round?: string; game?: string }> }) {
+  const { round, game } = await searchParams;
+  return <GameShell key={round ?? game ?? "default-round"} roundId={round} previewGame={round ? undefined : game} />;
 }

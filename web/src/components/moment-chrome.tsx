@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: "/matches", label: "Matches" },
   { href: "/entries", label: "My entries" },
   { href: "/rankings", label: "Rankings" },
+  { href: "/leagues", label: "Leagues" },
 ] as const;
 
 export function MomentHeader({ onOpenGuide }: { onOpenGuide?: () => void }) {

@@ -35,7 +35,10 @@ The product is mobile-first and intended for a fast pre-series decision, a locke
 - A row and a diagonal qualify a player for the jackpot. Invalid cells refund their affected cell stake; underfilled, cancelled, and timeout rounds support full refunds.
 - Resolution requires registered sources and persisted GenLayer consensus after the series is complete. Missing or conflicting evidence is INVALID, never automatically FALSE.
 - Studio Next is the only supported public network. Localnet may be used for automated tests.
-- League of Legends and Call of Duty market packs are future extensions and are not implemented now.
+- Call of Duty BO5 has a nine-cell market pack and a separate resolver. Synthetic practice is available; real staking requires a verified upcoming registration with at least two approved publishers.
+- Community leagues have public on-chain invitations and fixed rosters before the first round locks. One correct cell in a settled round earns one league point; stake sizes do not affect rank.
+- Round-specific settlement receipts show evidence, allocation, per-cell payout estimates, and authoritative claimable amounts, with a JSON export.
+- League of Legends remains a future extension.
 - The product does not request or store private keys, wallet passwords, or secrets.
 
 ## Brand Commitments

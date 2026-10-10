@@ -1,35 +1,44 @@
 "use client";
-
-import { ArrowRight, CalendarClock, CircleDot, ShieldCheck, Users } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { VERIFIED_VALORANT_FIXTURE } from "@meg/scoring";
-import { disclosedBotLabel, formatGen, genLayerGameConfig, readGameRounds, readRoundEntries, type GameRoundRecord } from "@/lib/genlayer-game";
+import { RefreshCw } from "lucide-react";
+import { genLayerGameConfig, readGameRounds, readGameRoundResolution, type GameRoundRecord } from "@/lib/genlayer-game";
+import { roundMarketPack } from "@/lib/round-pack";
+import type { MarketPack } from "@meg/scoring";
 
 export function MatchesClient() {
-  const [rounds, setRounds] = useState<GameRoundRecord[]>([]);
+  const [records, setRecords] = useState<Array<{ round: GameRoundRecord; pack: MarketPack | null }>>([]);
+  const [filter, setFilter] = useState("all");
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  useEffect(() => { void readGameRounds().then(setRounds).catch((caught) => setError(caught instanceof Error ? caught.message : "Unable to read registered Studio Next rounds.")); }, []);
-
-  return <div className="round-list">
-    <article className="round-card featured-round">
-      <header><span className="status-tag pending">VERIFIED · UPCOMING</span><span className="section-code">VALORANT / BO3</span></header>
-      <h2>{VERIFIED_VALORANT_FIXTURE.seriesName}</h2>
-      <p>Verified upcoming Valorant Champions fixture. Map 1 remains pending veto; entries unlock through the registered Studio Next round.</p>
-      <div className="data-grid"><div><span>Map 1</span><strong>{VERIFIED_VALORANT_FIXTURE.map1}</strong></div><div><span>Starts</span><strong>{formatDate(VERIFIED_VALORANT_FIXTURE.scheduledAt)}</strong></div><div><span>State</span><strong>Awaiting lock</strong></div></div>
-      <Link className="text-link" href="/">Open verified board <ArrowRight size={15} /></Link>
-    </article>
-    {error && <div className="notice-strip" role="alert"><CircleDot size={15} />{error}</div>}
-    {genLayerGameConfig.enabled && rounds.length > 0 && rounds.map((round) => <OnchainRoundCard key={round.round_id} round={round} />)}
-    {genLayerGameConfig.enabled && !error && rounds.length === 0 && <div className="empty-state"><strong>No registered MEG rounds yet.</strong><span>Fresh Studio Next rounds appear here after a deployer registers the market and evidence policy.</span></div>}
-    {!genLayerGameConfig.enabled && <div className="notice-strip"><ShieldCheck size={15} /><span>No MEG Studio Next contract is configured in this local build. Add the fresh addresses from `.env.local` to read real rounds.</span></div>}
-  </div>;
+  const [now, setNow] = useState(0);
+  const load = useCallback(async () => {
+    await Promise.resolve();
+    setNow(Date.now());
+    setLoading(true); setError("");
+    try {
+      const rounds = await readGameRounds();
+      const next = await Promise.all(rounds.map(async (round) => {
+        try {
+          const resolution = await readGameRoundResolution(round.round_id, round);
+          return { round, pack: roundMarketPack(round, resolution) };
+        } catch { return { round, pack: null }; }
+      }));
+      setRecords(next);
+    } catch (caught) { setError(caught instanceof Error ? caught.message : "Unable to load matches. Try refreshing."); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { const initial = window.setTimeout(() => void load(), 0); const timer = window.setInterval(() => setNow(Date.now()), 15_000); return () => { window.clearTimeout(initial); window.clearInterval(timer); }; }, [load]);
+  const visible = records.filter(({ pack }) => filter === "all" || pack?.id === filter);
+  return <section>
+    <div className="feature-toolbar"><Link className="feature-button" href="/?game=call-of-duty">Try the Call of Duty board</Link><Link className="feature-button" href="/leagues">Community leagues</Link><button className="feature-button" disabled={loading} onClick={() => void load()}><RefreshCw size={14} />Refresh matches</button></div>
+    <div className="feature-tabs" aria-label="Filter matches by game">{[["all", "All games"], ["valorant", "Valorant"], ["call-of-duty", "Call of Duty"]].map(([id, label]) => <button className="feature-button" aria-pressed={filter === id} key={id} onClick={() => setFilter(id)}>{label}</button>)}</div>
+    {loading && <p role="status">Reading registered matches…</p>}{error && <p className="notice-strip" role="alert">{error}</p>}
+    {!loading && !error && visible.length === 0 && <p className="notice-strip">{genLayerGameConfig.enabled ? "No registered matches for this selection yet. The practice board lets you explore the rules without staking." : "The game contract is not connected in this build. Practice boards remain available."}</p>}
+    <div className="round-list">{visible.map(({ round, pack }) => {
+      const open = round.status === "OPEN" && now < Date.parse(round.lock_at);
+      return <article className="round-card" key={round.round_id}><header><span className="status-tag">{open ? "OPEN" : round.status === "OPEN" ? "LOCKED" : round.status}</span><span>{pack?.name ?? "Unverified pack"}</span></header><h2>{pack?.fixture.seriesName ?? round.match_id}</h2><p>{pack ? pack.fixture.format.replace("BEST_OF_", "Best of ") + " · " + String(round.participant_count) + " entries" : "Market definitions need verification before new entries are enabled."}</p><p>Locks {new Date(round.lock_at).toLocaleString()}</p><div className="match-actions"><Link className="text-link" href={"/?round=" + encodeURIComponent(round.round_id)}>{open && pack ? "Make your calls" : "View round"}</Link><Link className="text-link" href={"/receipts/" + encodeURIComponent(round.round_id)}>Settlement receipt</Link></div></article>;
+    })}</div>
+    <p className="feature-note">Only contract-registered matches appear here. Practice boards are synthetic and cannot accept a stake.</p>
+  </section>;
 }
-
-function OnchainRoundCard({ round }: { round: GameRoundRecord }) {
-  const [botLabels, setBotLabels] = useState<string[]>([]);
-  useEffect(() => { void readRoundEntries(round.round_id, round.participant_count).then((entries) => setBotLabels(entries.flatMap((entry) => { const label = disclosedBotLabel(entry.player); return label ? [label] : []; }))).catch(() => setBotLabels([])); }, [round.participant_count, round.round_id]);
-  return <article className="round-card"><header><span className={`status-tag ${round.status === "OPEN" ? "" : round.status === "REFUNDING" ? "warning" : "pending"}`}>{round.status}</span><span className="section-code">STUDIO NEXT / REGISTERED</span></header><h2>{round.match_id}</h2><p>Contract-registered Valorant market. The round name is shown exactly as stored on-chain.</p><div className="data-grid"><div><span><Users size={11} /> Entries</span><strong>{String(round.participant_count)}</strong></div><div><span><ShieldCheck size={11} /> Jackpot</span><strong>{formatGen(round.jackpot_pool)} GEN</strong></div><div><span><CalendarClock size={11} /> Locks</span><strong>{formatDate(round.lock_at)}</strong></div></div>{botLabels.length > 0 && <p className="notice-strip"><ShieldCheck size={13} />Disclosed automated liquidity: {botLabels.join(" + ")}. Excluded from human rankings.</p>}<Link className="text-link" href={`/?round=${encodeURIComponent(round.round_id)}`}>{round.status === "OPEN" ? "Open registered round" : "View registered state"} <ArrowRight size={15} /></Link></article>;
-}
-
-function formatDate(value: string): string { const parsed = new Date(value); return Number.isNaN(parsed.getTime()) ? value : new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }).format(parsed) + " UTC"; }

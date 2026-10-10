@@ -1,8 +1,8 @@
 # MEG — Moment Esports Grid
 
-MEG is a nine-call Valorant prediction game built as a separate product from the original Moment Grid codebase. Players lock one option in each cell, stake native GEN on Studio Next, and settle against a strict GenLayer consensus record after the series is final.
+MEG is a nine-call esports prediction game with Valorant and Call of Duty market packs. Players lock one option in each cell, stake native GEN on Studio Next, and settle against a GenLayer consensus record after the series is final.
 
-The first playable pack is deliberately synthetic and clearly labelled. It is a deterministic product/demo fixture, not a live esports feed. No wallet is asked to sign until the grid, tier allocation, network, and settlement target are visible and confirmed.
+Only registered, verified upcoming fixtures enable staking. Call of Duty practice uses clearly labeled synthetic teams. Community leagues store invitations and fixed membership on-chain, and settlement receipts explain each cell’s stake, outcome, refund and estimated return. See [the milestone release](docs/MILESTONE_RELEASE.md) for deployment evidence and remaining live-fixture verification.
 
 ## Workspace
 
@@ -10,6 +10,9 @@ The first playable pack is deliberately synthetic and clearly labelled. It is a 
 - `shared/scoring/` — market-pack schema, option IDs, grid packing, line detection, and economic allocation helpers.
 - `contracts/moment_esports_grid_game.py` — nine-cell native-GEN game, isolated cell pools, refunds, jackpot, and claims.
 - `contracts/esports_match_resolver.py` — approved-source GenLayer resolver with nine strict cell results.
+- `contracts/cod_match_resolver.py` — BO5 Call of Duty resolver with independent publisher and validator checks.
+- `contracts/community_leagues.py` — invitation-only rosters that close before the first season round locks.
+- `scripts/register-cod-round.mjs` — owner-operated fixture registration with identity, source and timing checks.
 - `tests/direct/` — direct contract and resolver coverage.
 - `docs/` — architecture, economics, Studio Next operations, demo, and deployment gates.
 
@@ -35,7 +38,7 @@ pnpm test:contracts
 pnpm --filter web test:e2e
 ```
 
-The direct contract suite uses the local GenVM test harness. The product configuration exposes Studio Next only; localnet is reserved for automated contract tests.
+The direct contract suite uses the pinned runtime. Set `GENVM_VERSION=v0.6.0-rc8` when running the contract tools so their release bundle contains the contract’s pinned runner. Install `requirements.txt` into a Python 3.12+ environment. The product configuration exposes Studio Next only; localnet is reserved for automated contract tests.
 
 ## Scope boundary
 

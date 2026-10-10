@@ -73,8 +73,8 @@ export type ValorantFixture = {
 };
 
 export type MarketPack = {
-  id: "valorant";
-  name: "Valorant";
+  id: "valorant" | "call-of-duty";
+  name: "Valorant" | "Call of Duty";
   expandedName: "Moment Esports Grid";
   tagline: string;
   rows: readonly MarketRow[];

@@ -2,7 +2,8 @@
 
 import { ArrowLeft, ArrowRight, Check, Clock3, FileCheck2, Grid3X3, Info, LockKeyhole, RefreshCw, ShieldCheck, Ticket, TriangleAlert, WalletCards } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { VALORANT_MARKET_PACK, cellPoolPercentage, createValorantMarketPack, optionIdForCell, unpackGrid, type MarketCellDefinition, type MarketOptionId } from "@meg/scoring";
+import { VALORANT_MARKET_PACK, cellPoolPercentage, createCallOfDutyMarketPack, createValorantMarketPack, optionIdForCell, unpackGrid, type MarketCellDefinition, type MarketOptionId } from "@meg/scoring";
+import Link from "next/link";
 import { formatGen, MINIMUM_STAKE_GEN, stakeAllocation } from "@/lib/genlayer-game";
 import { useOnchainGame } from "@/lib/use-onchain-game";
 import { GuidedPlay, type GuideStep } from "./guided-play";
@@ -14,10 +15,9 @@ type OnchainGame = ReturnType<typeof useOnchainGame>;
 
 const GUIDE_KEY = "meg-guided-play-v1";
 
-export function GameShell({ roundId }: { roundId?: string }) {
-  const game = useOnchainGame(roundId);
-  const pack = VALORANT_MARKET_PACK;
-  const fixturePack = createValorantMarketPack(pack.fixture);
+export function GameShell({ roundId, previewGame }: { roundId?: string; previewGame?: string }) {
+  const game = useOnchainGame(previewGame ? "" : roundId);
+  const fixturePack = game.pack ?? (previewGame === "call-of-duty" ? createCallOfDutyMarketPack() : VALORANT_MARKET_PACK);
   const [grid, setGrid] = useState<Grid>(() => Array(9).fill(null));
   const [stage, setStage] = useState<PlayStage>("BUILD");
   const [stakeInput, setStakeInput] = useState(MINIMUM_STAKE_GEN);
@@ -102,7 +102,7 @@ export function GameShell({ roundId }: { roundId?: string }) {
     setNotice("");
     if (!complete || !allocation || locked) return;
     if (!game.configured) {
-      setNotice("This is a local preview. Add the fresh Studio Next MEG game and resolver addresses to enable the wallet transaction.");
+      setNotice("Choose a registered upcoming match to sign an entry. Practice boards let you explore the calls without staking.");
       return;
     }
     updateGuide("sign");
@@ -117,12 +117,13 @@ export function GameShell({ roundId }: { roundId?: string }) {
         <MomentNav />
         <div className="play-content">
           <header className="play-hero">
-            <div className="signal-line"><span className="signal-dot" /> MEG / VALORANT MARKET PACK <span className="synthetic-stamp">{fixturePack.fixture.mode === "SYNTHETIC" ? "SYNTHETIC FIXTURE" : "VERIFIED FIXTURE"}</span></div>
+            <div className="signal-line"><span className="signal-dot" /> MEG / {fixturePack.name.toUpperCase()} <span className="synthetic-stamp">{game.pack ? "REGISTERED FIXTURE" : "PRACTICE BOARD · NO STAKE"}</span></div>
             <h1>Nine calls.<br /><span>One series.</span></h1>
             <p>Read the board, make your nine calls, and stake one signed grid. Every square stands alone until GenLayer settles the series.</p>
           </header>
 
           <FixtureStrip game={game} pack={fixturePack} />
+          {!game.pack && <p className="notice-strip">{previewGame === "call-of-duty" ? "Try all nine Call of Duty predictions on this synthetic practice board. Choose a registered match to stake." : "Showing the legacy board for reference. A verified, unlocked registration is required to stake."} <Link href="/matches">Choose a match</Link></p>}
           <StatusRail status={game.round?.status} entry={game.entry} />
           <SummaryBoard />
 
@@ -146,7 +147,7 @@ export function GameShell({ roundId }: { roundId?: string }) {
 
           <ProofTeaser game={game} />
         </div>
-        <footer className="play-footer"><span>MEG · Moment Esports Grid</span><span>Independent product · not affiliated with Riot Games or the Valorant Champions Tour</span></footer>
+        <footer className="play-footer"><span>MEG · Moment Esports Grid</span><span>Independent product · not affiliated with Riot Games, Activision or their esports leagues</span></footer>
       </section>
       {guideOpen && <GuidedPlay step={guideStep} onExit={() => updateGuide(guideStep, "paused")} onPause={() => updateGuide(guideStep, "paused")} />}
     </main>
@@ -156,7 +157,7 @@ export function GameShell({ roundId }: { roundId?: string }) {
 function FixtureStrip({ game, pack }: { game: OnchainGame; pack: ReturnType<typeof createValorantMarketPack> }) {
   const fixture = pack.fixture;
   return (
-    <section className="fixture-strip" aria-label="Selected Valorant series">
+    <section className="fixture-strip" aria-label={`Selected ${pack.name} series`}>
       <div className="fixture-main"><span className="fixture-kicker">{game.configured ? game.config.deploymentLabel : "Local market preview"}</span><strong>{fixture.teamAShort}<i>vs</i>{fixture.teamBShort}</strong><span>{fixture.seriesName} · {fixture.format.replace("BEST_OF_", "BO")}</span></div>
       <div className="fixture-meta"><span><Clock3 size={13} /> {formatDate(game.round?.kickoff_at ?? fixture.scheduledAt)}</span><span><Grid3X3 size={13} /> 9 markets</span></div>
     </section>
@@ -235,7 +236,7 @@ function AllocationRow({ tone, label, perCell, total, share }: { tone: string; l
 
 function EntryAction({ game, allocation, complete, stage, locked, guideStep, notice, error, onReview, onBack, onLock }: { game: OnchainGame; allocation: ReturnType<typeof stakeAllocation> | null; complete: boolean; stage: PlayStage; locked: boolean; guideStep: GuideStep; notice: string; error: string; onReview: () => void; onBack: () => void; onLock: () => Promise<void> }) {
   if (locked) return <LockedEntry game={game} guideStep={guideStep} />;
-  const disabled = !complete || !allocation || game.busy;
+  const disabled = !complete || !allocation || game.busy || !game.configured || !game.canEnter;
   return (
     <section className="entry-action">
       <div className="panel-label"><span>03 / ACCEPT THE GRID</span><LockKeyhole size={16} /></div>
@@ -267,10 +268,10 @@ function LockedEntry({ game, guideStep }: { game: OnchainGame; guideStep: GuideS
 
 function ProofTeaser({ game }: { game: OnchainGame }) {
   const hasResolution = Boolean(game.resolution);
-  return <section className="proof-teaser"><div className="proof-icon"><ShieldCheck size={20} /></div><div><span className="section-code">GENLAYER / PROOF TRAIL</span><h2>{hasResolution ? "Resolution state is registered." : "The grid waits for evidence."}</h2><p>{hasResolution ? `${game.resolution?.match_status ?? "Series"} · ${game.resolution?.reason_code || "Awaiting final result"} · ${game.resolution?.evidence_summary || "Open the proof view for cell-by-cell state."}` : "Approved public sources are registered before lock. After the series completes, validators return nine structured cell outcomes. Missing or conflicting evidence becomes INVALID and refundable."}</p></div><a className="text-link" href="/genlayer">Open proof view <ArrowRight size={15} /></a></section>;
+return <section className="proof-teaser"><div className="proof-icon"><ShieldCheck size={20} /></div><div><span className="section-code">GENLAYER / PROOF TRAIL</span><h2>{hasResolution ? "Resolution state is registered." : "The grid waits for evidence."}</h2><p>{hasResolution ? `${game.resolution?.match_status ?? "Series"} · ${game.resolution?.reason_code || "Awaiting final result"} · ${game.resolution?.evidence_summary || "Open the proof view for cell-by-cell state."}` : "Approved public sources are registered before lock. After the series completes, validators return nine structured cell outcomes. Missing or conflicting evidence becomes INVALID and refundable."}</p></div><a className="text-link" href={game.config.roundId ? `/receipts/${encodeURIComponent(game.config.roundId)}` : "/matches"}>Open proof view <ArrowRight size={15} /></a></section>;
 }
 
 function formatDate(value: string): string {
   const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }).format(parsed) + " UTC";
+  return Number.isNaN(parsed.getTime()) ? "Unscheduled practice" : new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }).format(parsed) + " UTC";
 }

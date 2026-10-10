@@ -4,4 +4,7 @@ import { PrototypeShell } from "@/components/prototype-shell";
 
 export const metadata: Metadata = { title: "My entries · MEG", description: "Inspect MEG entries, settlement state, claims, and refunds." };
 
-export default function EntriesPage() { return <PrototypeShell title="Your grid stays yours." intro="Return to the contract-backed position view to see whether an entry is accepted, final, claimable, or refundable."><EntriesClient /></PrototypeShell>; }
+export default async function EntriesPage({ searchParams }: { searchParams: Promise<{ round?: string }> }) {
+  const { round } = await searchParams;
+  return <PrototypeShell title="Your grid stays yours." intro="Read your selected round’s entry, claim or refund. Choose another round from Matches."><EntriesClient key={round ?? "default"} roundId={round} /></PrototypeShell>;
+}

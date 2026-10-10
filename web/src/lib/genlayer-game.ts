@@ -1,4 +1,4 @@
-import { allocateStake, MAXIMUM_STAKE_WEI as SHARED_MAXIMUM_STAKE_WEI, MINIMUM_STAKE_WEI as SHARED_MINIMUM_STAKE_WEI, packGrid, type MarketOptionId } from "@meg/scoring";
+import { allocateStake, normalizeContractIntegers, MAXIMUM_STAKE_WEI as SHARED_MAXIMUM_STAKE_WEI, MINIMUM_STAKE_WEI as SHARED_MINIMUM_STAKE_WEI, packGrid, type MarketOptionId } from "@meg/scoring";
 import { createTransactionKit, type SubmitInput } from "@genlayer/transaction-kit";
 import { createClient } from "genlayer-js";
 import { localnet, studioDevnet } from "genlayer-js/chains";
@@ -64,6 +64,18 @@ export type GameEntryRecord = {
 };
 
 export type GameRoundResolutionRecord = {
+  team_a?: string;
+  team_b?: string;
+  player_a?: string;
+  player_b?: string;
+  competition?: string;
+  match_date?: string;
+  format_name?: string;
+  map_1?: string;
+  game_type?: string;
+  rule_version?: string;
+  settlement_target?: string;
+  settlement_round_id?: string;
   resolution_id: string;
   match_id: string;
   status: "PENDING" | "SETTLED";
@@ -93,6 +105,9 @@ export type GameCellPool = {
 };
 
 type GenLayerClientConfig = NonNullable<Parameters<typeof createClient>[0]>;
+const ROUND_INTEGERS = ["minimum_stake", "maximum_stake", "minimum_participants", "minimum_total_stake", "minimum_unique_grids", "unique_grid_count", "participant_count", "total_escrow", "total_pool_stake", "total_claimed", "jackpot_seed", "jackpot_pool", "jackpot_winning_stake", "jackpot_paid", "revenue_pool", "settlement_cursor", "window_0_bitmap", "window_1_bitmap", "window_2_bitmap", "window_0_valid_bitmap", "window_1_valid_bitmap", "window_2_valid_bitmap"];
+const ENTRY_INTEGERS = ["packed_grid", "stake_amount", "marked_mask", "completed_lines", "claimable"];
+const POOL_INTEGERS = ["cell", "total_pool", "option_0_moment_id", "option_0_stake", "option_1_moment_id", "option_1_stake", "option_2_moment_id", "option_2_stake", "winning_stake", "refundable_stake", "paid"];
 const requestedNetwork = process.env.NEXT_PUBLIC_GENLAYER_GAME_NETWORK?.trim().toLowerCase() ?? "studio-next";
 const networkSetting = requestedNetwork === "localnet" ? "localnet" : "studio-next";
 const networks = {
@@ -141,7 +156,7 @@ export function disclosedBotLabel(address?: string): string | null {
   return "Disclosed Bot";
 }
 
-function client(account?: `0x${string}`, provider?: GenLayerClientConfig["provider"]) {
+export function client(account?: `0x${string}`, provider?: GenLayerClientConfig["provider"]) {
   return createClient({
     chain: selectedNetwork.chain,
     ...(endpoint ? { endpoint } : {}),
@@ -153,11 +168,6 @@ function client(account?: `0x${string}`, provider?: GenLayerClientConfig["provid
 function gameAddress(): `0x${string}` {
   if (!isAddress(contractAddress)) throw new Error("The MEG game contract is not configured for Studio Next.");
   return contractAddress;
-}
-
-function roundResolverAddress(): `0x${string}` {
-  if (!isAddress(resolverAddress)) throw new Error("The MEG resolver contract is not configured for Studio Next.");
-  return resolverAddress;
 }
 
 async function assertExecution(receipt: { txExecutionResultName?: string; consensus_data?: { leader_receipt?: Array<{ execution_result?: string }> } }, phase: string) {
@@ -258,7 +268,7 @@ async function submitWithKit(account: `0x${string}`, provider: GenLayerProvider,
   return submitted.genlayerTxId;
 }
 
-async function writeFinalized(account: `0x${string}`, provider: GenLayerProvider, address: `0x${string}`, functionName: string, args: CalldataEncodable[], value = 0n, onSubmitted?: (hash: `0x${string}`) => void): Promise<`0x${string}`> {
+export async function writeFinalized(account: `0x${string}`, provider: GenLayerProvider, address: `0x${string}`, functionName: string, args: CalldataEncodable[], value = 0n, onSubmitted?: (hash: `0x${string}`) => void): Promise<`0x${string}`> {
   return submitWithKit(account, provider, address, functionName, args, value, "finalized", onSubmitted);
 }
 
@@ -291,7 +301,7 @@ export function stakeAllocation(value: string, minimumStake = MINIMUM_STAKE_WEI,
 export async function readGameRound(selectedRoundId = roundId): Promise<GameRoundRecord | null> {
   if (!genLayerGameConfig.enabled || !selectedRoundId) return null;
   const result = await client().readContract({ address: gameAddress(), functionName: "get_round", args: [selectedRoundId] });
-  return result && typeof result === "object" && Object.keys(result).length > 0 ? result as GameRoundRecord : null;
+  return result && typeof result === "object" && Object.keys(result).length > 0 ? normalizeContractIntegers<GameRoundRecord>(result, ROUND_INTEGERS) : null;
 }
 
 export async function readGameRounds(): Promise<GameRoundRecord[]> {
@@ -305,24 +315,31 @@ export async function readGameRounds(): Promise<GameRoundRecord[]> {
 export async function readGameEntry(player: `0x${string}`, selectedRoundId = roundId): Promise<GameEntryRecord | null> {
   if (!genLayerGameConfig.enabled || !selectedRoundId) return null;
   const result = await client().readContract({ address: gameAddress(), functionName: "get_entry", args: [selectedRoundId, player] });
-  return result && typeof result === "object" && Object.keys(result).length > 0 ? result as GameEntryRecord : null;
+  return result && typeof result === "object" && Object.keys(result).length > 0 ? normalizeContractIntegers<GameEntryRecord>(result, ENTRY_INTEGERS) : null;
 }
 
-export async function readGameRoundResolution(selectedRoundId = roundId): Promise<GameRoundResolutionRecord | null> {
+export async function readGameRoundResolution(selectedRoundId = roundId, knownRound?: GameRoundRecord | null): Promise<GameRoundResolutionRecord | null> {
   if (!genLayerGameConfig.enabled || !selectedRoundId) return null;
-  const result = await client().readContract({ address: roundResolverAddress(), functionName: "get_round_resolution", args: [selectedRoundId] });
-  return result && typeof result === "object" && Object.keys(result).length > 0 ? result as GameRoundResolutionRecord : null;
+  const round = knownRound === undefined ? await readGameRound(selectedRoundId) : knownRound;
+  if (!round || !isAddress(round.resolver_address)) return null;
+  const result = await client().readContract({ address: round.resolver_address, functionName: "get_round_resolution", args: [round.resolver_resolution_id] }) as GameRoundResolutionRecord;
+  if (!result || !Object.keys(result).length) return null;
+  if (result.resolution_id !== round.resolver_resolution_id || result.match_id !== round.match_id || result.settlement_round_id !== round.round_id || result.settlement_target?.toLowerCase() !== contractAddress.toLowerCase()) {
+    throw new Error("The resolver record does not match this round. Entries are disabled until the registration is corrected.");
+  }
+  return normalizeContractIntegers<GameRoundResolutionRecord>(result, ["attempt_count", "dispatch_count"]);
 }
 
 export async function readRoundEntries(selectedRoundId: string, participantCount: bigint): Promise<GameEntryRecord[]> {
   if (!genLayerGameConfig.enabled) return [];
   const records = await Promise.all(Array.from({ length: Number(participantCount) }, (_, index) => client().readContract({ address: gameAddress(), functionName: "get_entry_by_index", args: [selectedRoundId, index] }) as Promise<GameEntryRecord>));
-  return records.filter((record) => record && Object.keys(record).length > 0);
+  return records.filter((record) => record && Object.keys(record).length > 0).map((record) => normalizeContractIntegers<GameEntryRecord>(record, ENTRY_INTEGERS));
 }
 
 export async function readCellPools(selectedRoundId = roundId): Promise<GameCellPool[]> {
   if (!genLayerGameConfig.enabled || !selectedRoundId) return [];
-  return Promise.all(Array.from({ length: 9 }, (_, cell) => client().readContract({ address: gameAddress(), functionName: "get_cell_pool", args: [selectedRoundId, cell] }) as Promise<GameCellPool>));
+  const pools = await Promise.all(Array.from({ length: 9 }, (_, cell) => client().readContract({ address: gameAddress(), functionName: "get_cell_pool", args: [selectedRoundId, cell] })));
+  return pools.filter((record) => record && typeof record === "object" && Object.keys(record).length > 0).map((record) => normalizeContractIntegers<GameCellPool>(record, POOL_INTEGERS));
 }
 
 type Submitted = (hash: `0x${string}`) => void;
@@ -331,12 +348,14 @@ export function enterGameRound(account: `0x${string}`, provider: GenLayerProvide
   return writeAccepted(account, provider, gameAddress(), "join_round", [selectedRoundId, packGrid(grid)], stake, onSubmitted);
 }
 
-export function resolveGameRound(account: `0x${string}`, provider: GenLayerProvider, resolutionId: string, onSubmitted?: Submitted) {
-  return writeFinalized(account, provider, roundResolverAddress(), "resolve_round", [resolutionId], 0n, onSubmitted);
+export function resolveGameRound(account: `0x${string}`, provider: GenLayerProvider, resolutionId: string, onSubmitted?: Submitted, resolver = resolverAddress) {
+  if (!isAddress(resolver)) throw new Error("Invalid round resolver address.");
+  return writeFinalized(account, provider, resolver, "resolve_round", [resolutionId], 0n, onSubmitted);
 }
 
-export function dispatchGameResolution(account: `0x${string}`, provider: GenLayerProvider, resolutionId: string, onSubmitted?: Submitted) {
-  return writeFinalized(account, provider, roundResolverAddress(), "dispatch_resolution", [resolutionId], 0n, onSubmitted);
+export function dispatchGameResolution(account: `0x${string}`, provider: GenLayerProvider, resolutionId: string, onSubmitted?: Submitted, resolver = resolverAddress) {
+  if (!isAddress(resolver)) throw new Error("Invalid round resolver address.");
+  return writeFinalized(account, provider, resolver, "dispatch_resolution", [resolutionId], 0n, onSubmitted);
 }
 
 export function processGameSettlement(account: `0x${string}`, provider: GenLayerProvider, selectedRoundId = roundId, onSubmitted?: Submitted) {
