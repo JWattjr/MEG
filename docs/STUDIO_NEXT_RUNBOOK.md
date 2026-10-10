@@ -37,6 +37,20 @@ The following fields are filled only after a fresh transaction is finalized on S
 5. Keep the resolution pending until the match record is final. Do not call `resolve_round` for a scheduled, postponed, disputed, or partially evidenced match.
 6. Use Transaction Kit’s live fee estimate and tracking for wallet writes. A fee quote must not be assumed; Studio Next may report gasless policy.
 
+## Existing-contract milestone follow-up
+
+For the expired original round, verified new fixtures and two-wallet leagues,
+follow [LIVE_USAGE_RUNBOOK.md](LIVE_USAGE_RUNBOOK.md). It provides dry-run-first
+commands for `activate-refunds.mjs`, `register-valorant-round.mjs` and
+`league-smoke.mjs`, plus the manual website-entry gates. These operate existing
+contracts; do not redeploy or change the addresses above. The owner alone runs
+signing commands with local process-environment keys. Inspect finalized
+execution success and resulting state, not just transaction submission.
+
+At the 10 October follow-up, future-fixture verification and the website's
+legacy-only Valorant pack binding were still blockers. Do not treat the operator
+utilities or passing unit tests as proof those live workflows happened.
+
 ## Vercel and submission evidence
 
 - Repository: `https://github.com/JWattjr/MEG`

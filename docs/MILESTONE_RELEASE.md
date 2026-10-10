@@ -80,3 +80,94 @@ Post-promotion public checks passed: all nine COD draft selections and review, d
 Impeccable's fresh finish review found one material mapping issue: a stray header spacer shifted TEAM/MAP/PLAYER. The spacer was removed and a regression assertion added. The reviewer scored that finding **resolved**, with a **ship** verdict scoped to this correction. All six corrected desktop/mobile captures were validated. The documentation comparison preserved the incumbent visual system without changing DESIGN.md or repairing pre-existing token/sidecar drift. No new shipping raster assets were introduced.
 
 Submission remains a separate owner action. Do not claim live COD settlement or live league participation until a genuine upcoming round has been registered and the transactions have been exercised.
+
+## Review hardening, 10 October 2026
+
+These are script, documentation and test-setup changes only. No deployed
+contract or frontend file was changed, and no new signed transaction was sent.
+See [the owner-operated live usage runbook](LIVE_USAGE_RUNBOOK.md) for the
+dry-run-first commands and manual website entry procedure.
+
+- Added guarded refund activation for the expired Valorant round, requiring
+  OPEN/SCORING and the elapsed refund deadline, successful finalization, and a
+  post-write REFUNDING state check. Activation enables participant claims; it
+  does not transfer their refunds automatically.
+- Added resolver-first Valorant registration and strengthened COD registration
+  with read-only dry-runs, strict existing-record checks before any write,
+  on-chain economic/binding verification, and successful-execution checks.
+  Existing Valorant source lists are verified against the original finalized
+  registration calldata because the deployed view does not expose those URLs.
+  This proof was tested against the actual original public registration hash
+  already recorded in the Studio Next runbook; it is not new usage.
+- Added two-wallet league smoke commands for create, invite and join, with
+  finality/success checks, exact host/season/game checks and safe resumption.
+  Dry-runs take public wallet addresses and never access signing keys.
+- Fixed the milestone comparison to `9ba876e...15b70eb` and pinned the direct
+  test dependencies/runtime through `uv.lock` and the test conftest.
+
+### Verification results
+
+| Check | Observed result |
+| --- | --- |
+| `pnpm --filter @meg/scoring test` | 13 passed |
+| `uv run pytest tests/direct` | 45 passed |
+| New isolated environment: `uv sync --locked`, then direct tests | 45 passed; Python 3.13.13, pytest 8.4.2, genlayer-test 0.30.0rc2 |
+| `pnpm test:contracts` | 45 passed using the repo-local uv environment |
+| `node --test tests/operator/*.test.mjs` | 18 passed; synthetic unit inputs only, no real transactions |
+| `pnpm --filter web lint` | Passed |
+| `pnpm --filter web typecheck` | Passed |
+| `pnpm --filter web build` | Passed; existing parent/repo workspace-root warning |
+| Refund script, live `--dry-run` | Passed: original round OPEN, refund deadline 2 October elapsed |
+| Valorant registration, live `--dry-run` without fixture | Deployment inspection succeeded; 1 registration; exit 2 because fixture preflight is incomplete |
+| COD registration, live `--dry-run` without fixture | Deployment inspection succeeded; 0 registrations; exit 2 because fixture preflight is incomplete |
+| League smoke, live `--dry-run` against original round | Correctly refused past-lock round; exit 1; no qualifying future round available |
+
+An additional isolated loader probe downloaded and extracted a fresh
+`v0.6.0-rc8` bundle (325,563,524 bytes). The first probe's custom cache directory
+name did not satisfy the harness's `gltest-direct` path-based module cleanup,
+causing repeated-contract errors. Retesting with a compatible cache path passed
+all 45 tests. That in-process probe reported one pytest import-rewrite warning;
+the normal commands and fresh-environment run passed without that warning.
+The normal loader's default cache path already satisfies its cleanup rule.
+
+### Remaining gates — not live usage evidence
+
+The expired original round remains OPEN with its two existing entries; the
+coding agent has not activated refunds. The live league registry still has zero
+leagues. No verified future Valorant fixture was created: one LCQ candidate has
+conflicting official/VLR start times, and the Champions upper-final candidate
+lacks a second approved match-specific page confirming the teams. Source links
+and the verification limits are recorded in the live usage runbook.
+
+The current website recognizes only the original Valorant market pack. A new
+Valorant round cannot be entered through this frontend until a separately
+authorized, verified fixture-to-market binding is added. This was identified
+by source inspection, not a completed two-wallet website test. Registering a
+round alone would not clear this gate. No frontend change was made under the
+scripts/docs/test-only scope.
+
+### Record live evidence after the owner runs the commands
+
+Do not create a dated "Live usage" section with assumed hashes. After the owner
+sends public transaction hashes, verify each receipt from Studio Next: chain,
+target, exact method/IDs, successful execution and FINALIZED status. Re-read the
+resulting game/resolver/league/entry state. Only then append
+`Live usage, <actual UTC date>` with each hash, a link in the form
+`https://explorer-studio-dev.genlayer.com/tx/<actual-hash>`, and the specific
+result it proves. Record refund activation, resolver registration, game round
+creation, league creation, invitation, joining and each manual paid entry
+separately if they actually happen. A membership transaction does not prove a
+stake; a pending-entry receipt does not prove resolution or payout. Retain
+failed/time-out submissions separately as diagnostics, never as successful
+milestone usage.
+
+### Portal follow-up draft (current verified state)
+
+We hardened MEG's milestone release with dry-run-first refund activation,
+resolver-first fixture registration and two-wallet league smoke scripts that
+verify successful finalization and resulting state. The comparison link is now
+fixed to the reviewed release, and the pinned uv/GenVM setup passes 45 direct
+tests from a fresh environment, alongside 13 scoring and 18 operator tests.
+Frontend lint, typecheck and build pass. Live league participation remains
+pending a fully verified future fixture and a frontend binding for that
+Valorant pack; no new live usage or COD settlement is claimed.
