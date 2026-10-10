@@ -62,7 +62,7 @@ Use one milestone submission for the combined release if only one weekly slot re
 
 ## Reproducible public review path
 
-Production website: [MEG](https://moment-grid-genlayer.vercel.app/). Feature commit: `6bd470bd481e6d7ca2001d57a7963e8bb04a95fe`.
+Production website: [MEG](https://moment-grid-genlayer.vercel.app/). Implementation commit: `6bd470bd481e6d7ca2001d57a7963e8bb04a95fe`; reviewed application release: `3e73e4bbac732e32835cb65f7165c45ba5200d6d`.
 
 1. Open [Call of Duty practice](https://moment-grid-genlayer.vercel.app/?game=call-of-duty). Check the nine BO5-specific questions, select calls or quick-fill a draft, and open the review. The board is visibly synthetic; signing remains disabled. No wallet or funds are needed to inspect this pack.
 2. Open [the public entry explanation](https://moment-grid-genlayer.vercel.app/receipts/meg-champions-2026-group-c-tl-prx?wallet=0x1eE3B827907429E5dF3DB7282446b6E065ff6199). This existing public entry shows its original 1 GEN stake, nine predictions, 0.9 GEN cell allocation, and separate 0.05 GEN jackpot/platform allocations. Its outcomes are pending and its available claim is 0 GEN; this is not a completed settlement. Export JSON to inspect the exact integer amounts, round binding, and observed state.
@@ -70,3 +70,13 @@ Production website: [MEG](https://moment-grid-genlayer.vercel.app/). Feature com
 4. Compare [the new code against the accepted release](https://github.com/JWattjr/MEG/compare/9ba876e...codex/meg-milestones), then inspect the [league registry](https://explorer-studio-dev.genlayer.com/address/0x5E1f8CdDab9c0301E3C4a05988d9e29723d0d8d4) and [COD resolver](https://explorer-studio-dev.genlayer.com/address/0x03dfc444cb9963D59B146b94e8a062f3B0D498D5). The deployed source matches the release contracts.
 
 Authenticated staged-production checks passed on all three routes at desktop 1440×960 and mobile 390×844, with no browser exceptions or document-level horizontal overflow. The existing entry rendered all nine rows and exported JSON on both devices. Horizontally scrollable ledger tables retain their full columns on narrow screens. These checks do not replace live league creation/joining or real COD resolution.
+
+## Final release verification
+
+The corrected production deployment `dpl_EdS2kuGRQcsuaWFqrz4qCojqmDB9` is READY and was promoted to the public website on 10 October 2026. Framework: Next.js 16.2.12. Vercel build: 43 seconds. Its immutable URL is [the reviewed deployment](https://moment-grid-genlayer-ahjb426sj-wattxs-projects.vercel.app); this URL retains Vercel authentication while the public website is accessible without the temporary verification session.
+
+Post-promotion public checks passed: all nine COD draft selections and review, disabled synthetic signing, past-lock match discovery, Studio Next chain 61997 through the deployed API, connected league registry, and a real-entry nine-cell receipt with JSON download. Final lint, TypeScript, local production build and all four browser regression tests passed. The development-server rerun had timed out before assertions; the compiled-server rerun passed all four in 4.2 seconds. The recent Vercel error-log query returned no logs; monitoring/drains were not audited, so this is not a claim that every runtime error would be detected.
+
+Impeccable's fresh finish review found one material mapping issue: a stray header spacer shifted TEAM/MAP/PLAYER. The spacer was removed and a regression assertion added. The reviewer scored that finding **resolved**, with a **ship** verdict scoped to this correction. All six corrected desktop/mobile captures were validated. The documentation comparison preserved the incumbent visual system without changing DESIGN.md or repairing pre-existing token/sidecar drift. No new shipping raster assets were introduced.
+
+Submission remains a separate owner action. Do not claim live COD settlement or live league participation until a genuine upcoming round has been registered and the transactions have been exercised.
