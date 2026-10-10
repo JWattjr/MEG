@@ -6,7 +6,17 @@ dependencies = []
 
 [tool.pytest.ini_options]
 testpaths = ["tests/direct"]
+cache_dir = ".tools/pytest-cache"
 markers = [
   "integration: requires a running GenLayer RPC environment",
   "slow: hosted-network transaction test",
+]
+
+[tool.uv.sources]
+genlayer-test = { git = "https://github.com/genlayerlabs/genlayer-testing-suite", rev = "d84591b58746a6202b56b720199ce7b9f12fd666" }
+
+[dependency-groups]
+dev = [
+    "genlayer-test==0.30.0rc2",
+    "pytest==8.4.2",
 ]

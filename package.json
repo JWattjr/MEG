@@ -12,7 +12,7 @@
     "lint": "pnpm -r lint",
     "dev:web": "pnpm --filter web dev",
     "typecheck": "pnpm --filter @meg/scoring build && pnpm -r typecheck",
-    "test:contracts": "python -m pytest tests/direct -v"
+    "test:contracts": "uv run pytest tests/direct"
   },
   "devDependencies": {
     "next": "16.2.12"

@@ -36,11 +36,38 @@ pnpm --filter @meg/scoring typecheck
 pnpm --filter web lint
 pnpm --filter web typecheck
 pnpm --filter web build
+uv sync --locked
 pnpm test:contracts
+node --test tests/operator/*.test.mjs
 pnpm --filter web test:e2e
 ```
 
-The direct contract suite uses the pinned runtime. Set `GENVM_VERSION=v0.6.0-rc8` when running the contract tools so their release bundle contains the contract’s pinned runner. Install `requirements.txt` into a Python 3.12+ environment. The product configuration exposes Studio Next only; localnet is reserved for automated contract tests.
+The direct suite uses `uv.lock`, not a globally installed `gltest` or pytest.
+Python 3.13 is selected by `.python-version`. Dev dependencies pin pytest
+`8.4.2` and `genlayer-test==0.30.0rc2` (the `v0.30.0-rc.2` testing-suite release,
+fixed Git revision `d84591b58746a6202b56b720199ce7b9f12fd666`). The latter's
+direct SDK loader supports the v0.6 release tree and `bundles-v2` cache instead
+of selecting an obsolete cached v0.3.0-rc7 bundle.
+
+`tests/direct/conftest.py` defaults `GENVM_VERSION` to `v0.6.0-rc8` **before**
+importing the direct harness. This release contains the contracts' pinned
+`py-genlayer:5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng` runner.
+Explicit environment settings still override the default: remove an obsolete
+`GENVM_VERSION` or set it to `v0.6.0-rc8`, and unset `GENVM_PREBUILT_DIR` unless
+you intentionally provide a compatible runner tree. Do not edit contract hashes
+or point tests at `latest` to mask a missing runner.
+
+On first use the loader downloads the pinned release bundle from
+`genlayerlabs/genvm-manager` and caches it under
+`~/.cache/gltest-direct/bundles-v2`; initial installation therefore needs GitHub
+and package-registry access. Windows fd-0 cleanup and message timestamp
+compatibility are isolated in the test conftest. These direct tests mock
+nondeterministic input and do not prove live publisher retrieval or consensus.
+The product configuration exposes Studio Next only; localnet is reserved for
+automated contract tests (the direct suite needs no running local node).
+
+See [the live usage runbook](docs/LIVE_USAGE_RUNBOOK.md) for dry-run-first refund,
+registration and two-wallet league commands. No agent signs these transactions.
 
 ## Scope boundary
 

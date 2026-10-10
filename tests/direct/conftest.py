@@ -12,6 +12,10 @@ until stdin has been restored. No contract behavior is changed.
 import os
 import json
 
+# Select a release bundle containing the contracts' concrete runner hash.
+# Set this before importing gltest; do not let a stale global cache select v0.3.
+os.environ.setdefault("GENVM_VERSION", "v0.6.0-rc8")
+
 from gltest.direct.vm import VMContext
 
 
