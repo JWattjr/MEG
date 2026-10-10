@@ -16,6 +16,8 @@ web/.vercel/
 **/*.tsbuildinfo
 .pytest_cache/
 .tools/
+.local-fixtures/
+**/.venv/
 .impeccable/review/
 web/test-results/
 web/playwright-report/
