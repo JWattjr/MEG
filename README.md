@@ -4,6 +4,8 @@ MEG is a nine-call esports prediction game with Valorant and Call of Duty market
 
 Only registered, verified upcoming fixtures enable staking. Call of Duty practice uses clearly labeled synthetic teams. Community leagues store invitations and fixed membership on-chain, and settlement receipts explain each cell’s stake, outcome, refund and estimated return. See [the milestone release](docs/MILESTONE_RELEASE.md) for deployment evidence and remaining live-fixture verification.
 
+Review the fixed [milestone release comparison](https://github.com/JWattjr/MEG/compare/9ba876e...15b70eb) against the accepted baseline; this link does not follow a moving branch.
+
 ## Workspace
 
 - `web/` — Next.js 16 browser client and product routes.
