@@ -74,6 +74,7 @@ export type GameRoundResolutionRecord = {
   map_1?: string;
   game_type?: string;
   rule_version?: string;
+  source_urls?: string[];
   settlement_target?: string;
   settlement_round_id?: string;
   resolution_id: string;
@@ -117,6 +118,7 @@ const networks = {
 const selectedNetwork = networks[networkSetting];
 const contractAddress = process.env.NEXT_PUBLIC_GENLAYER_GAME_ADDRESS ?? "";
 const resolverAddress = process.env.NEXT_PUBLIC_GENLAYER_ROUND_RESOLVER_ADDRESS ?? "";
+const valorantResolverAddress = process.env.NEXT_PUBLIC_GENLAYER_VALORANT_RESOLVER_ADDRESS ?? "";
 const roundId = process.env.NEXT_PUBLIC_GENLAYER_GAME_ROUND_ID ?? "";
 const botAddresses = (process.env.NEXT_PUBLIC_GENLAYER_BOT_ADDRESSES ?? "")
   .split(",")
@@ -130,12 +132,14 @@ const networkLabel = networkSetting === "studio-next" ? "Studio Next" : "Localne
 export const genLayerGameConfig = {
   contractAddress,
   resolverAddress,
+  valorantResolverAddress,
   roundId,
   endpoint,
   network: networkSetting,
   chainId: selectedNetwork.chain.id,
-  enabled: isAddress(contractAddress) && isAddress(resolverAddress),
-  activeRoundEnabled: isAddress(contractAddress) && isAddress(resolverAddress) && Boolean(roundId),
+  // Every game round supplies its own resolver address (v1, v2 or COD).
+  enabled: isAddress(contractAddress),
+  activeRoundEnabled: isAddress(contractAddress) && Boolean(roundId),
   botAddresses,
   deploymentLabel: networkSetting === "studio-next" ? "Studio Next · MEG" : "Localnet · tests only",
   networkLabel,
