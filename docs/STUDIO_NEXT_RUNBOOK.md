@@ -28,7 +28,7 @@ The following fields are filled only after a fresh transaction is finalized on S
 - Resolution ID: `meg-champions-2026-group-c-tl-prx-20260924`
 - Match ID: `valorant-champions-2026-group-c-opening-tl-prx`
 
-## Safe operating sequence
+## Original deployment sequence (historical; do not repeat for v2)
 
 1. Deploy fresh `MomentEsportsGridGame` and `EsportsMatchResolver` contracts with the pinned GenVM runner.
 2. Register the resolution with the two approved source URLs and the exact match metadata. Verify the registration is finalized before opening the round.
@@ -37,19 +37,42 @@ The following fields are filled only after a fresh transaction is finalized on S
 5. Keep the resolution pending until the match record is final. Do not call `resolve_round` for a scheduled, postponed, disputed, or partially evidenced match.
 6. Use Transaction Kit’s live fee estimate and tracking for wallet writes. A fee quote must not be assumed; Studio Next may report gasless policy.
 
-## Existing-contract milestone follow-up
+## Additive Valorant v2 follow-up
+
+`contracts/valorant_match_resolver.py`, version `valorant-bo3-v2`, is implemented;
+**deployed only when a real successful finalized transaction exists**. No v2
+address or deployment hash is assumed. Do not modify/migrate/redeploy any of
+the existing game, v1 resolver, leagues or COD addresses.
+
+V1 stores no player names, so its cell-5 prompt cannot bind the board's named
+options. V2 fixes this for NEW rounds by registering both players and returning
+the complete schema. It retains the Valorant nine-cell indexing and separate
+persisted consensus → finalized dispatch into the existing game's
+`accept_resolution`. Unknown/incomplete per-cell facts are INVALID, conflicting
+publishers remain pending, and cancelled/postponed matches remain pending for
+the game's full-refund path. B 2–0 has no exact-score choice in the existing
+board, so that one cell is INVALID rather than misreported.
+
+Order: owner deploys NEW v2 → verify source SHA256/version/owner → set
+`NEXT_PUBLIC_GENLAYER_VALORANT_RESOLVER_ADDRESS` in Vercel → rebuild/stage/check
+and promote → verified fixture registration → league create/invite/join → two
+manual website entries. The frontend v2 branch is inactive with a blank public
+address. See the complete commands in [LIVE_USAGE_RUNBOOK.md](LIVE_USAGE_RUNBOOK.md).
+
+## Existing-contract refund and league operations
 
 For the expired original round, verified new fixtures and two-wallet leagues,
 follow [LIVE_USAGE_RUNBOOK.md](LIVE_USAGE_RUNBOOK.md). It provides dry-run-first
 commands for `activate-refunds.mjs`, `register-valorant-round.mjs` and
 `league-smoke.mjs`, plus the manual website-entry gates. These operate existing
-contracts; do not redeploy or change the addresses above. The owner alone runs
+game/league contracts and the NEW v2 for new registrations; do not redeploy or change the addresses above. The owner alone runs
 signing commands with local process-environment keys. Inspect finalized
 execution success and resulting state, not just transaction submission.
 
-At the 10 October follow-up, future-fixture verification and the website's
-legacy-only Valorant pack binding were still blockers. Do not treat the operator
-utilities or passing unit tests as proof those live workflows happened.
+At the earlier 10 October follow-up, future-fixture verification and legacy-only
+board binding were blockers. The additive implementation addresses board binding
+conditionally on v2 deployment/activation. Fixture verification, deployment and
+signed live usage still require owner action; tests are not transaction evidence.
 
 ## Vercel and submission evidence
 

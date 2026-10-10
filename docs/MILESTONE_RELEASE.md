@@ -81,7 +81,7 @@ Impeccable's fresh finish review found one material mapping issue: a stray heade
 
 Submission remains a separate owner action. Do not claim live COD settlement or live league participation until a genuine upcoming round has been registered and the transactions have been exercised.
 
-## Review hardening, 10 October 2026
+## Earlier scripts-only review hardening, 10 October 2026 (historical)
 
 These are script, documentation and test-setup changes only. No deployed
 contract or frontend file was changed, and no new signed transaction was sent.
@@ -139,7 +139,7 @@ conflicting official/VLR start times, and the Champions upper-final candidate
 lacks a second approved match-specific page confirming the teams. Source links
 and the verification limits are recorded in the live usage runbook.
 
-The current website recognizes only the original Valorant market pack. A new
+At that scripts-only revision, the website recognized only the original Valorant market pack. A new
 Valorant round cannot be entered through this frontend until a separately
 authorized, verified fixture-to-market binding is added. This was identified
 by source inspection, not a completed two-wallet website test. Registering a
@@ -161,7 +161,7 @@ stake; a pending-entry receipt does not prove resolution or payout. Retain
 failed/time-out submissions separately as diagnostics, never as successful
 milestone usage.
 
-### Portal follow-up draft (current verified state)
+### Earlier portal follow-up draft (superseded by the additive v2 work below)
 
 We hardened MEG's milestone release with dry-run-first refund activation,
 resolver-first fixture registration and two-wallet league smoke scripts that
@@ -171,3 +171,87 @@ tests from a fresh environment, alongside 13 scoring and 18 operator tests.
 Frontend lint, typecheck and build pass. Live league participation remains
 pending a fully verified future fixture and a frontend binding for that
 Valorant pack; no new live usage or COD settlement is claimed.
+
+## Additive Valorant v2 implementation, 10 October 2026
+
+Status: **implemented; deployed only when its actual transaction exists**. No
+v2 deployment, registration, new league or entry transaction was signed by the
+coding agent. The existing game, v1, league and COD contracts are unchanged.
+
+The deployed v1 resolver stores no player names. Its cell-5 prompt asks for
+player A/B indexes without saying who those players are, so it cannot reliably
+resolve the board's named-player choice. The legacy board remains readable;
+this limitation is not retroactively repaired or hidden.
+
+The NEW `contracts/valorant_match_resolver.py` implements `valorant-bo3-v2`.
+Registration fixes game/rule identity, teams, both players, BO3 format, match
+date, map label, two or three distinct approved publishers, evidence window,
+and settlement target/round. Independent validators recollect the publisher
+facts. Consensus is persisted before a separate finalized dispatch into the
+existing game. Missing cell statistics are INVALID only for affected cells;
+conflicting sources and cancelled/postponed matches remain pending. The
+inherited exact-score cell has no B 2–0 option, so v2 invalidates that cell for
+B 2–0 rather than awarding B 2–1.
+
+The frontend constructs new Valorant boards from v2 metadata, including the
+registered named-player choices, instead of one hardcoded fixture. Reads route
+through each round's `resolver_address`, allowing v1, v2 and COD to coexist.
+Unknown rule versions and missing players are rejected. V2 stays inactive
+until `NEXT_PUBLIC_GENLAYER_VALORANT_RESOLVER_ADDRESS` matches the NEW deployed
+resolver. The original fixture branch and COD branch remain supported.
+
+The deployment utility checks the live chain and source schema without keys
+in dry-run mode, waits for FINALIZED + successful execution when the OWNER
+runs it, then compares deployed source SHA256, version and owner. The v2
+registration utility verifies that same deployed source and all metadata
+before creating a round. The exact activation order is in
+[LIVE_USAGE_RUNBOOK.md](LIVE_USAGE_RUNBOOK.md): deploy → verify → public Vercel
+environment → rebuild/stage/check/promote → verified fixture registration →
+league create/invite/join → two manual website entries.
+
+Deployment and live-fixture verification remain gates. No v2 address or hash
+is recorded without an actual verified receipt. Add a dated Live usage section
+only after the owner runs the transactions and their public receipts/state
+are independently checked.
+
+### Additive v2 verification
+
+| Check | Observed result |
+| --- | --- |
+| `uv run pytest tests/direct` | 72 passed, including 27 v2 tests |
+| `pnpm --filter @meg/scoring test` | 13 passed |
+| `pnpm --filter web test` | 15 passed, including all pack branches and round-specific v1/v2 reads |
+| `node --test tests/operator/*.test.mjs` | 23 passed; synthetic inputs, no real signing |
+| `pnpm --filter web test:e2e` | 8 passed: 6 existing regressions plus mocked v2 desktop/mobile entry review |
+| `pnpm --filter web lint` | Passed |
+| `pnpm --filter web typecheck` | Passed |
+| GenVM lint + validation | Passed with `GENVM_VERSION=v0.6.0-rc8`; 8 public methods; informational newer-runner notice |
+| `pnpm --filter web build` | Passed with v2 inactive; existing nested-workspace root warning |
+| Deploy utility, live `--dry-run` | Passed chain 61997, existing game owner and exact source schema; no deployment/key access |
+| Register utility, live `--dry-run` | Correctly refused missing v2 address; exit 1; deployment and verified fixture are still required |
+| Vercel production environment names | v2 public variable absent; pushing this gated frontend does not activate an undeployed v2 |
+
+Desktop 1440×960 and mobile 390×844 screenshots retain the existing shell and
+nine-cell layout; neither capture showed document-level horizontal overflow.
+Impeccable's manual detector found no findings in the changed data-mapping files;
+the rendered review was scoped to this functional extension, not a redesign.
+Existing Impeccable config/sidecar drift was not repaired as a side effect.
+The contract/frontend delta has an immutable
+[comparison to the scripts-only revision](https://github.com/JWattjr/MEG/compare/0a6ab29...760bbea).
+Earlier Windows dev-server browser navigation timed out before
+assertions; the production-build browser setup avoids that startup dependency.
+The mocked v2 RPC initially decoded calldata as an object rather than its raw
+Map representation; that test-only mock was corrected before the v2 assertions
+passed. Neither diagnostic involved a signed transaction.
+
+### Current portal follow-up draft
+
+We added an additive Valorant BO3 v2 resolver that registers both player names,
+fixing an ambiguity in the original top-fragger prompt. New Valorant rounds
+can now build their nine-call boards from on-chain metadata, with fail-closed
+rule/player checks and per-round resolver routing alongside the unchanged
+legacy and COD contracts. Owner-operated deployment and registration scripts
+verify finalization, source SHA256 and metadata bindings. Contract, mapping
+and mocked browser tests cover the new path. V2 deployment/activation and
+verified-fixture live participation remain pending; no new transaction or
+traction is claimed.

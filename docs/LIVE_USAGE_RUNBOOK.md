@@ -1,6 +1,7 @@
 # Owner-operated live usage checks
 
-No contract changes or signed transactions are performed by the coding agent.
+The agent implements an ADDITIVE Valorant v2 contract; it never signs transactions.
+Do not modify, migrate or redeploy the existing game, Valorant v1, leagues or COD resolver.
 Run from the MEG repository root. Install dependencies with `pnpm install --frozen-lockfile`.
 Keys are read only from the local process environment for non-dry-run commands:
 `GENLAYER_PRIVATE_KEY` (wallet 1; game/resolver owner for registration) and
@@ -48,8 +49,8 @@ No local live fixture JSON was created. `.local-fixtures/` is gitignored and is
 the required location once verification succeeds. Do not use the synthetic
 operator unit-test inputs as real fixtures.
 
-Before preparing `.local-fixtures/valorant.json`, verify actual teams, kickoff
-in UTC (at least 48 hours away at registration), BO3/BO5, official schedule and
+Before preparing `.local-fixtures/valorant.json`, verify actual teams, named players, kickoff
+in UTC (at least 48 hours away at registration), BO3, official schedule and
 two match-specific pages from different approved publishers. Record your
 source checks locally; `verified: true` is an operator attestation, not an
 automated publisher-content check. Exact allowed origins match the deployed
@@ -62,31 +63,68 @@ The JSON schema is:
 - UTC `lock_at`, `kickoff_at`, `resolve_not_before`, `resolve_deadline`, `refund_at`
   in `YYYY-MM-DDTHH:MM:SSZ` format, with now < lock < kickoff <= evidence-open
   < evidence-deadline <= refund;
-- `metadata`: `match_id`, `team_a`, `team_b`, `competition`, `match_date`,
-  `format_name` (`BEST_OF_3` or `BEST_OF_5`), `map_1`, and `source_urls` (2–3
-  distinct URLs from at least two publishers). Do not guess a veto/map; disclose
+- `metadata`: `game_type: "valorant"`, `rule_version: "valorant-bo3-v2"`,
+  `match_id`, `team_a`, `team_b`, `player_a`, `player_b`, `competition`, `match_date`,
+  `format_name: "BEST_OF_3"`, `map_1`, and `source_urls` (2–3
+  URLs, each from a different approved publisher). Do not guess a veto/map; disclose
   an unannounced opening map as pending rather than inventing its name.
 
-Use game `0x3Dc2e4Bc192f0C39bA3930BB584342906d30e75a` and Valorant resolver
-`0x54EfF381f3DE7809653ddbaCdCF40f1f6bcF4d97`. The script checks both existing
+Use game `0x3Dc2e4Bc192f0C39bA3930BB584342906d30e75a` and the NEW source-verified
+v2 resolver address (never the v1 address). The script checks both existing
 records before writing, registers the resolver first, verifies it, creates the
 game round, then verifies all exposed IDs, metadata, bindings, timing and
 economic thresholds (1 GEN, 2 participants, 2 GEN total, 2 unique grids).
-The Valorant view omits the original sources. When resuming an existing
-registration, provide `--registration-tx <public-hash>` to verify its exact
-successful finalized calldata, including the source list. Missing proof fails
-closed. Resolver owner/pause state is not exposed by a view and is not proven
-by deployment-only inspection.
+The v2 view exposes named players, rules and source URLs, so resumption compares
+all metadata directly. The script also checks deployed source SHA256, version
+and that v2 belongs to the existing game owner before any signing.
 
-### Additional website gate
+### Deploy v2 → set public environment → redeploy site (owner-operated)
 
-`web/src/lib/round-pack.ts` currently recognizes only the accepted legacy
-Valorant fixture. `use-onchain-game.ts` refuses entries when no verified pack
-can be constructed. **A newly registered Valorant round will not enable website
-staking.** A frontend update that safely binds the new fixture's market/player
-definitions is required before the two-wallet website exercise. It is outside
-this scripts/docs/test-only request; no UI or deployed contract was changed.
-Do not register an otherwise unused round assuming this gate is already fixed.
+Status: **implemented; deployed only when an actual transaction exists**.
+The v1 contract stores no player names: its cell-5 prompt cannot bind player A/B.
+Its original board remains readable; do not describe v1 player settlement as fixed.
+Only v2 supplies authoritative named-player board metadata. Its branch remains
+inactive until the public build environment contains its actual deployed address.
+
+Run in repository root, with the game-owner key already set securely in the local
+process environment. These commands never echo the key:
+
+```powershell
+node scripts/deploy-valorant-resolver.mjs --dry-run
+if ($LASTEXITCODE -ne 0) { throw 'Deployment preflight failed; stop.' }
+node scripts/deploy-valorant-resolver.mjs
+if ($LASTEXITCODE -ne 0) { throw 'Inspect submitted hash; do not blindly redeploy.' }
+
+$megV2 = Read-Host 'NEW v2 PUBLIC address from FINALIZED + SUCCESS + SOURCE VERIFIED output'
+node scripts/deploy-valorant-resolver.mjs --dry-run --verify-address $megV2
+if ($LASTEXITCODE -ne 0) { throw 'Source/version/owner verification failed; stop.' }
+$env:NEXT_PUBLIC_GENLAYER_VALORANT_RESOLVER_ADDRESS = $megV2
+
+vercel env add NEXT_PUBLIC_GENLAYER_VALORANT_RESOLVER_ADDRESS production --project moment-grid-genlayer --value $megV2 --visibility config --no-sensitive --yes
+if ($LASTEXITCODE -ne 0) { throw 'Check existing public variable; stop before deployment.' }
+vercel deploy --prod --skip-domain
+if ($LASTEXITCODE -ne 0) { throw 'Staged production build failed; stop.' }
+```
+
+If the variable already exists, inspect its public value first, then repeat
+`vercel env add` with `--force` only when intentionally replacing that v2 value.
+Never replace the legacy resolver variable. Vercel CLI 59.5.0 supports these flags.
+The repo is linked to `moment-grid-genlayer`; confirm the CLI's project and build
+commit match this release. `NEXT_PUBLIC_` values are build-time: changing the
+variable alone cannot update the running site. No signing key goes into Vercel.
+
+Open the staged URL printed by deploy. Verify build success, original Valorant
+round/receipts, COD practice and leagues, with no guessed v2 round. Check that
+the build uses the verified v2 address. Only then run:
+
+```powershell
+$megStagedUrl = Read-Host 'Verified staged deployment URL'
+vercel promote $megStagedUrl
+if ($LASTEXITCODE -ne 0) { throw 'Promotion failed; stop.' }
+```
+
+Registration follows site activation, then league create/invite/join, then the
+two MANUAL website entries. Do not promote a build targeting an undeployed v2.
 
 ## 3. Registration and league commands (only after both gates are cleared)
 
@@ -122,8 +160,9 @@ COD registration now also supports `--dry-run` with a verified local BO5 JSON
 using the existing COD schema and publisher policy. This is not evidence that a
 real COD registration or settlement has occurred.
 
-Running either registration script with only `--dry-run` inspects deployed
-versions/counts without a fixture and exits **2** (incomplete fixture preflight).
+With v2 configured, running either registration script with only `--dry-run`
+inspects deployed versions/counts without a fixture and exits **2** (incomplete
+fixture preflight). Missing/undeployed v2 address stops Valorant earlier with exit 1.
 It must not be described as a successful real-fixture registration test.
 
 ## 4. Two manual website entries (not automated)

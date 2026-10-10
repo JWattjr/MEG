@@ -12,6 +12,7 @@ Review the fixed [milestone release comparison](https://github.com/JWattjr/MEG/c
 - `shared/scoring/` — market-pack schema, option IDs, grid packing, line detection, and economic allocation helpers.
 - `contracts/moment_esports_grid_game.py` — nine-cell native-GEN game, isolated cell pools, refunds, jackpot, and claims.
 - `contracts/esports_match_resolver.py` — approved-source GenLayer resolver with nine strict cell results.
+- `contracts/valorant_match_resolver.py` — additive `valorant-bo3-v2` resolver with registered player names and independent publisher/validator checks; implemented, deployed only when its transaction exists.
 - `contracts/cod_match_resolver.py` — BO5 Call of Duty resolver with independent publisher and validator checks.
 - `contracts/community_leagues.py` — invitation-only rosters that close before the first season round locks.
 - `scripts/register-cod-round.mjs` — owner-operated fixture registration with identity, source and timing checks.
@@ -68,6 +69,30 @@ automated contract tests (the direct suite needs no running local node).
 
 See [the live usage runbook](docs/LIVE_USAGE_RUNBOOK.md) for dry-run-first refund,
 registration and two-wallet league commands. No agent signs these transactions.
+
+## Valorant v2 activation
+
+The deployed v1 resolver does **not** store player names, so its cell-5 prompt
+cannot reliably distinguish the board's player A/B. That existing contract is
+unchanged, and the original fixture branch remains readable. V2 registers both
+names and returns them with `game_type` and `rule_version` so newly registered
+BO3 rounds can build their boards without hardcoded fixtures. Unknown rules or
+missing players fail closed. The inherited exact-score cell has no B 2–0
+choice; v2 marks that cell INVALID for B 2–0, never B 2–1.
+
+Leave `NEXT_PUBLIC_GENLAYER_VALORANT_RESOLVER_ADDRESS` blank until the operator
+deploys the NEW contract and verifies FINALIZED execution, owner, version and
+source SHA256. Then set that public address in Vercel and rebuild before
+registering a verified upcoming match. The frontend reads each round's
+`resolver_address`, not a global resolver address. V1, v2 and COD coexist; no
+existing contract is replaced or migrated. The runbook gives the exact order.
+
+Web unit tests: `pnpm --filter web test`. Browser checks include a separate
+synthetic, mocked v2 board with an enabled entry-review button; they do not sign
+or prove live participation. To lint AND validate the new contract with the
+reviewed GenVM runner bundle, set `GENVM_VERSION=v0.6.0-rc8` in your process and
+run `genvm-lint check contracts/valorant_match_resolver.py --json` (linter 0.10.0
+verified locally; `requirements.txt` also lists the newer RC).
 
 ## Scope boundary
 
