@@ -182,7 +182,7 @@ function SummaryBoard() {
 function MarketGrid({ pack, grid, locked, guideStep, onChange }: { pack: ReturnType<typeof createValorantMarketPack>; grid: Grid; locked: boolean; guideStep: GuideStep; onChange: (cellIndex: number, value: string) => void }) {
   return (
     <div className="market-grid-wrap">
-      <div className="grid-column-heads"><span aria-hidden="true" />{pack.columns.map((column) => <span key={column}>{column}</span>)}</div>
+      <div className="grid-column-heads">{pack.columns.map((column) => <span key={column}>{column}</span>)}</div>
       <div className="market-grid" data-testid="meg-grid">
         {pack.cells.map((marketCell) => <MarketCell key={marketCell.id} definition={marketCell} value={grid[marketCell.cellIndex]} locked={locked} guideStep={guideStep} onChange={onChange} />)}
       </div>

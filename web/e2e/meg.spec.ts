@@ -34,6 +34,7 @@ test("supporting routes disclose configuration and verified data", async ({ page
 
 test("Call of Duty practice pack has its own BO5 questions and disables staking", async ({ page }) => {
   await page.goto("/?game=call-of-duty");
+  await expect(page.locator(".grid-column-heads span")).toHaveText(["TEAM", "MAP", "PLAYER"]);
   await expect(page.getByText("PRACTICE BOARD · NO STAKE")).toBeVisible();
   await expect(page.getByText("Opening Hardpoint total score?", { exact: true })).toBeVisible();
   await expect(page.getByText("First Search & Destroy round count?", { exact: true })).toBeVisible();
