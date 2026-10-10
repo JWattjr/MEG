@@ -24,3 +24,16 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 - Match browsing can start filtered to the selected game; all-game browsing remains available.
 - Verify both game themes at desktop/mobile sizes, round-trip switching, draft cancel/confirm, and existing non-signing review behavior.
 - No new shipping raster assets or durable global design-system changes.
+
+## Verified release evidence
+
+Recorded from the supplied release handoff; this documentation pass checked the local source and four screenshot files, without rerunning release tests or remote smoke.
+
+- Source: `a1efa6b`. Checked `web/src/components/{game-shell,game-selector,matches-client}.tsx`, `web/src/app/matches/page.tsx`, and `web/src/app/globals.css` against root `PRODUCT.md`, `DESIGN.md`, and the direction contract above. The extension retains the paper board, Archivo Black/Geist/IBM Plex Mono hierarchy, squared controls, lime action/status semantics, and nine separate pools. Valorant keeps cobalt; only Call of Duty Play uses charcoal/olive overrides. Exactly two shipped packs are selectable; Call of Duty Mobile is absent. This is an ordinary local extension, not global design-system approval; DESIGN.md and existing sidecar state are preserved.
+- Production: Vercel `dpl_3SN2gDoFcnuXRqUkezoEwqH8T7pU`, **READY**, at [deployment](https://moment-grid-genlayer-1bi2yq3t5-wattxs-projects.vercel.app), promoted to [public MEG](https://moment-grid-genlayer.vercel.app/?game=call-of-duty). The 45-second cloud build includes the final guard that blocks switching while acceptance awaits finality.
+- Checks supplied: lint, typecheck, and local build passed; all six end-to-end tests passed. The mechanical detector ran once and returned `[]`.
+- Local visual evidence (gitignored, not public attachments): `.impeccable/review/game-{valorant,call-of-duty}-{desktop,mobile}.png`. All four were validated by the main pass and fresh reviewer; supplied 390px checks found no horizontal overflow and confirmed the 44px game-selector control. No new shipping raster assets were added, so no new asset provenance is required.
+- Independent finish review supplied: **ship**, all five required sections complete, no fixes. The required named reviewer role was substituted with a fresh subagent supplied the review contract. This documenter role is performed inline using the degraded documenter contract because this harness exposes no named roles.
+- Remote smoke supplied: round-trip picker changes updated URL, theme, and questions together; synthetic staking stayed disabled; a registered past round displayed LOCKED without an entering link. API configuration confirmed Studio Next chain `61997` and a connected registry; no new fixtures were registered.
+- Final main-agent checks: real-entry nine-cell receipt and JSON export passed on the staged deployment; promotion succeeded. A fresh unauthenticated browser checked the canonical public domain and verified both game packs, colors, URLs, and the selected-game match filter. The error-log scan returned no logs (not proof of no errors); drains and monitoring were not audited.
+- Remaining product boundary: COD is a synthetic practice board until a verified upcoming COD round is registered. This UI release does not register matches, fund wallets, or alter contracts.
