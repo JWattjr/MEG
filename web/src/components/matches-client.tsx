@@ -5,10 +5,11 @@ import { RefreshCw } from "lucide-react";
 import { genLayerGameConfig, readGameRounds, readGameRoundResolution, type GameRoundRecord } from "@/lib/genlayer-game";
 import { roundMarketPack } from "@/lib/round-pack";
 import type { MarketPack } from "@meg/scoring";
+import { GameSelector, type GameFilter } from "./game-selector";
 
-export function MatchesClient() {
+export function MatchesClient({ initialGame = "all" }: { initialGame?: GameFilter }) {
   const [records, setRecords] = useState<Array<{ round: GameRoundRecord; pack: MarketPack | null }>>([]);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<GameFilter>(initialGame);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [now, setNow] = useState(0);
@@ -32,7 +33,7 @@ export function MatchesClient() {
   const visible = records.filter(({ pack }) => filter === "all" || pack?.id === filter);
   return <section>
     <div className="feature-toolbar"><Link className="feature-button" href="/?game=call-of-duty">Try the Call of Duty board</Link><Link className="feature-button" href="/leagues">Community leagues</Link><button className="feature-button" disabled={loading} onClick={() => void load()}><RefreshCw size={14} />Refresh matches</button></div>
-    <div className="feature-tabs" aria-label="Filter matches by game">{[["all", "All games"], ["valorant", "Valorant"], ["call-of-duty", "Call of Duty"]].map(([id, label]) => <button className="feature-button" aria-pressed={filter === id} key={id} onClick={() => setFilter(id)}>{label}</button>)}</div>
+    <div className="match-game-filter"><GameSelector value={filter} onChange={setFilter} includeAll /></div>
     {loading && <p role="status">Reading registered matches…</p>}{error && <p className="notice-strip" role="alert">{error}</p>}
     {!loading && !error && visible.length === 0 && <p className="notice-strip">{genLayerGameConfig.enabled ? "No registered matches for this selection yet. The practice board lets you explore the rules without staking." : "The game contract is not connected in this build. Practice boards remain available."}</p>}
     <div className="round-list">{visible.map(({ round, pack }) => {

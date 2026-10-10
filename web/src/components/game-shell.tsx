@@ -4,10 +4,12 @@ import { ArrowLeft, ArrowRight, Check, Clock3, FileCheck2, Grid3X3, Info, LockKe
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { VALORANT_MARKET_PACK, cellPoolPercentage, createCallOfDutyMarketPack, createValorantMarketPack, optionIdForCell, unpackGrid, type MarketCellDefinition, type MarketOptionId } from "@meg/scoring";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatGen, MINIMUM_STAKE_GEN, stakeAllocation } from "@/lib/genlayer-game";
 import { useOnchainGame } from "@/lib/use-onchain-game";
 import { GuidedPlay, type GuideStep } from "./guided-play";
 import { MomentHeader, MomentNav } from "./moment-chrome";
+import { GameSelector, type GameFilter } from "./game-selector";
 
 type Grid = Array<MarketOptionId | null>;
 type PlayStage = "BUILD" | "REVIEW";
@@ -16,6 +18,7 @@ type OnchainGame = ReturnType<typeof useOnchainGame>;
 const GUIDE_KEY = "meg-guided-play-v1";
 
 export function GameShell({ roundId, previewGame }: { roundId?: string; previewGame?: string }) {
+  const router = useRouter();
   const game = useOnchainGame(previewGame ? "" : roundId);
   const fixturePack = game.pack ?? (previewGame === "call-of-duty" ? createCallOfDutyMarketPack() : VALORANT_MARKET_PACK);
   const [grid, setGrid] = useState<Grid>(() => Array(9).fill(null));
@@ -36,6 +39,12 @@ export function GameShell({ roundId, previewGame }: { roundId?: string; previewG
   const complete = viewGrid.every((option): option is MarketOptionId => option !== null);
   const chosenCount = viewGrid.filter(Boolean).length;
   const locked = Boolean(game.entry);
+  const switchingDisabled = game.busy || game.transactionStage === "ACCEPTED";
+  const switchGame = (next: GameFilter) => {
+    if (switchingDisabled || next === "all" || next === fixturePack.id) return;
+    if (!locked && grid.some(Boolean) && !window.confirm("Switch games and discard your unfinished draft? Your signed entries are not affected.")) return;
+    router.push(`/?game=${next}`, { scroll: false });
+  };
   const allocation = useMemo(() => {
     try {
       return stakeAllocation(stakeInput, game.round?.minimum_stake, game.round?.maximum_stake);
@@ -111,11 +120,15 @@ export function GameShell({ roundId, previewGame }: { roundId?: string; previewG
   };
 
   return (
-    <main className="meg-app">
+    <main className="meg-app" data-game={fixturePack.id}>
       <section className="desk-frame play-frame">
         <MomentHeader onOpenGuide={openGuide} />
         <MomentNav />
         <div className="play-content">
+          <div className="game-switch-bar">
+            <GameSelector value={fixturePack.id as "valorant" | "call-of-duty"} onChange={switchGame} disabled={switchingDisabled} />
+            <Link className="game-match-link" href={`/matches?game=${fixturePack.id}`}>Browse {fixturePack.name} matches <ArrowRight size={16} aria-hidden="true" /></Link>
+          </div>
           <header className="play-hero">
             <div className="signal-line"><span className="signal-dot" /> MEG / {fixturePack.name.toUpperCase()} <span className="synthetic-stamp">{game.pack ? "REGISTERED FIXTURE" : "PRACTICE BOARD · NO STAKE"}</span></div>
             <h1>Nine calls.<br /><span>One series.</span></h1>
@@ -123,7 +136,7 @@ export function GameShell({ roundId, previewGame }: { roundId?: string; previewG
           </header>
 
           <FixtureStrip game={game} pack={fixturePack} />
-          {!game.pack && <p className="notice-strip">{previewGame === "call-of-duty" ? "Try all nine Call of Duty predictions on this synthetic practice board. Choose a registered match to stake." : "Showing the legacy board for reference. A verified, unlocked registration is required to stake."} <Link href="/matches">Choose a match</Link></p>}
+          {!game.pack && <p className="notice-strip">{previewGame ? `Try all nine ${fixturePack.name} predictions on this synthetic practice board. Choose a registered match to stake.` : "Showing the legacy board for reference. A verified, unlocked registration is required to stake."} <Link href={`/matches?game=${fixturePack.id}`}>Choose a match</Link></p>}
           <StatusRail status={game.round?.status} entry={game.entry} />
           <SummaryBoard />
 

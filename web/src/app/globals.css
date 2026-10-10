@@ -119,6 +119,25 @@ code, .mono { font-family: var(--mono); }
 .trust-links { gap: 12px; padding-left: 18px; border-left: 1px solid #2d435b; }
 
 .play-content { max-width: 1200px; margin: 0 auto; padding: 52px 52px 36px; }
+.game-switch-bar { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: 16px 24px; margin-bottom: 32px; }
+.game-selector { display: grid; gap: 8px; width: 220px; max-width: 100%; color: var(--ink); font-size: 13px; font-weight: 700; }
+.game-selector-input { position: relative; display: block; }
+.game-selector select { appearance: none; width: 100%; min-height: 44px; padding: 10px 42px 10px 12px; color: var(--ink); background: var(--white); border: 1px solid var(--ink); border-radius: 0; font-weight: 650; }
+.game-selector select:hover:not(:disabled) { background: var(--paper-deep); }
+.game-selector select:disabled { opacity: .55; cursor: not-allowed; }
+.game-selector-input svg { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+.game-match-link { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--cobalt-deep); font-size: 13px; font-weight: 700; text-underline-offset: 4px; }
+.match-game-filter { margin-bottom: 24px; }
+.meg-app[data-game="call-of-duty"] { --ink: #171c18; --night: #171c18; --paper: #f1f0e7; --paper-deep: #e6e5d9; --muted: #536154; --rule: #b2b7a7; --cobalt: #53663a; --cobalt-deep: #33432d; --violet: #e4e8d4; }
+.meg-app[data-game="call-of-duty"] .desk-frame,
+.meg-app[data-game="call-of-duty"] .app-header,
+.meg-app[data-game="call-of-duty"] .moment-nav,
+.meg-app[data-game="call-of-duty"] .trust-links { border-color: #384335; }
+.meg-app[data-game="call-of-duty"] .fixture-main > span:last-child,
+.meg-app[data-game="call-of-duty"] .fixture-meta { color: #d9dfcf; }
+.meg-app[data-game="call-of-duty"] .fixture-kicker,
+.meg-app[data-game="call-of-duty"] .fixture-main strong i { color: #e7d288; }
+.grid-actions .secondary-control { min-height: 44px; color: var(--ink); border-color: var(--ink); }
 .play-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .7fr); gap: 28px; align-items: end; padding-bottom: 36px; }
 .play-hero .signal-line { grid-column: 1 / -1; }
 .signal-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; color: var(--cobalt-deep); font-family: var(--mono); font-size: 10px; font-weight: 800; letter-spacing: .1em; }
